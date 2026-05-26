@@ -61,7 +61,7 @@ FantAI/
 1. **Listone** — Carica il nuovo CSV da ⚙️ Impostazioni
 2. **Link SOS Fanta** — Aggiorna gli URL quando escono le nuove guide
 3. **Mapping nomi** — Compila `data/mapping_nomi.csv` per i giocatori non riconosciuti
-4. **Stats** — Esegui `python -m src.fantacalcio` per scrappare la nuova stagione
+4. **Stats** — Si aggiornano automaticamente all'avvio se manca la stagione corrente
 
 ## Fonti dati
 
