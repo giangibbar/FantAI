@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+    <title>FantAI — Asta Fantacalcio Mantra</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        html,body{height:100%;width:100%;overflow:hidden;margin:0}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1923;color:#e8e8e8;height:100vh;overflow:hidden}
+        .wrap{width:100%;max-width:100vw;padding:6px 10px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+        h1{text-align:center;font-size:1.4em;margin:6px 0;color:#4fc3f7}
+        h1 span{font-size:.5em;display:block;color:#888;font-weight:normal}
+        .tabs{display:flex;gap:4px;margin:6px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .tab{padding:6px 10px;border-radius:7px;background:#1a2a3a;border:none;color:#aaa;font-size:11px;cursor:pointer;white-space:nowrap}
+        .tab.active{background:#4fc3f7;color:#000;font-weight:bold}
+        .panel{background:#1a2a3a;border-radius:9px;padding:10px;margin:8px 0;border:1px solid #2a3a4a}
+        .panel-hl{border-color:#4fc3f7}
+        .panel h3{color:#4fc3f7;margin-bottom:6px;font-size:.95em}
+        .row{display:flex;gap:5px;margin-bottom:5px;flex-wrap:wrap}
+        .row input,.row select{flex:1;min-width:70px;padding:8px;border-radius:7px;border:1px solid #2a3a4a;background:#0f1923;color:#fff;font-size:14px}
+        .row button,.btn{padding:8px 12px;border-radius:7px;border:none;background:#4fc3f7;color:#000;font-weight:bold;font-size:12px;cursor:pointer}
+        .btn-sm{padding:4px 8px;font-size:10px}
+        .btn-o{background:transparent;border:1px solid #4fc3f7;color:#4fc3f7}
+        .btn-red{background:#f44336;color:#fff}
+        .verdict{padding:9px;border-radius:7px;margin-top:5px;font-size:.95em}
+        .v-ok{background:#1b5e20;border:1px solid #4caf50}
+        .v-maybe{background:#4a3800;border:1px solid #ff9800}
+        .v-no{background:#4a0000;border:1px solid #f44336}
+        .card{background:#1a2a3a;border-radius:9px;padding:10px;margin:6px 0;border:1px solid #2a3a4a}
+        .card-h{display:flex;justify-content:space-between;align-items:center}
+        .card-n{font-size:1em;font-weight:bold}
+        .card-m{color:#888;font-size:.75em}
+        .card-p{font-size:1.3em;font-weight:bold;color:#4fc3f7;text-align:right}
+        .card-p small{font-size:.4em;color:#888;display:block}
+        .badge{display:inline-block;padding:1px 4px;border-radius:3px;font-size:.6em;font-weight:bold;margin-left:2px}
+        .b-tit{background:#4caf50;color:#000}
+        .b-rig{background:#ff9800;color:#000}
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px 0}
+        .st{text-align:center;padding:5px;background:#0f1923;border-radius:5px}
+        .st-v{font-size:1em;font-weight:bold}
+        .st-l{font-size:.6em;color:#888}
+        .g{color:#4caf50}.r{color:#f44336}.y{color:#ff9800}
+        .role{display:inline-block;padding:1px 4px;border-radius:3px;font-size:.65em;font-weight:bold}
+        .role-Por{background:#ff9800;color:#000}
+        .role-Dc,.role-Dd,.role-Ds,.role-B,.role-E,.role-D{background:#4caf50;color:#000}
+        .role-M,.role-C,.role-W,.role-T{background:#2196f3;color:#fff}
+        .role-A,.role-Pc{background:#f44336;color:#fff}
+        .hist{margin-top:5px;display:none;font-size:.75em}
+        .hr{display:grid;grid-template-columns:65px 38px 38px 48px 32px 32px;gap:2px;padding:2px 0;border-bottom:1px solid #2a3a4a}
+        .hh{color:#888;font-weight:bold}
+        .tp{display:inline-flex;align-items:center;gap:2px;padding:2px 6px;margin:2px;border-radius:4px;background:#0f1923;font-size:.75em}
+        .tp .x{cursor:pointer;color:#f44336;margin-left:3px}
+        .ac{position:absolute;top:100%;left:0;right:0;background:#1a2a3a;border:1px solid #2a3a4a;border-radius:7px;max-height:180px;overflow-y:auto;z-index:100}
+        .ac div{padding:7px 10px;cursor:pointer;font-size:.85em}
+        .ac div:hover{background:#2a3a4a}
+        .sec-t{color:#666;font-size:.7em;margin:8px 0 3px;text-transform:uppercase;letter-spacing:.5px}
+        .mod{padding:3px 7px;border-radius:4px;background:#2a3a4a;font-size:.7em;color:#4fc3f7;cursor:pointer}
+        .mod:hover,.mod.sel{background:#4fc3f7;color:#000}
+        .upload{padding:10px;border:2px dashed #2a3a4a;border-radius:9px;text-align:center;margin:8px 0}
+        .upload input[type=file]{display:none}
+        .upload label{cursor:pointer;color:#4fc3f7;font-size:.85em}
+        #stats-content{white-space:pre-wrap;font-size:.95em;line-height:1.8;max-height:65vh;overflow-y:auto;padding:14px}
+        .player-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:1px solid #1a2a3a;cursor:pointer}
+        .player-row:hover{background:#1a2a3a}
+        .player-row .left{display:flex;align-items:center;gap:6px}
+        .player-row .right{display:flex;align-items:center;gap:8px;font-size:.85em}
+        .player-row .quota{color:#4fc3f7;font-weight:bold;min-width:25px;text-align:right}
+        .player-row .fm{color:#888;min-width:35px}
+        .assign-btn{padding:3px 6px;border-radius:4px;border:none;background:#ff9800;color:#000;font-size:.65em;font-weight:bold;cursor:pointer}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>🏆 FantAI <span>Assistente Asta Fantacalcio Mantra</span></h1>
+    <div class="tabs" id="main-tabs">
+        <button class="tab active" onclick="showSec('asta',this)">🎯 Asta</button>
+        <button class="tab" onclick="showSec('stats',this)">📊 Info</button>
+        <button class="tab" onclick="showSec('opp',this)">👥 Lega</button>
+        <button class="tab" onclick="showSec('settings',this)">⚙️</button>
+    </div>
+
+    <!-- ASTA -->
+    <div id="sec-asta" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="panel panel-hl">
+            <h3>🎯 Lo prendo?</h3>
+            <div class="row" style="position:relative">
+                <input type="text" id="a-name" placeholder="Giocatore..." autocomplete="off" oninput="autocompleteAsta(this.value)">
+                <input type="number" id="a-price" placeholder="€" style="max-width:65px">
+                <button onclick="askBuy()">Valuta</button>
+                <div id="a-autocomplete" class="ac" style="display:none"></div>
+            </div>
+            <div id="verdict"></div>
+        </div>
+        <div class="panel">
+            <h3>📋 Rosa <span id="bud" style="float:right;font-size:.85em"></span></h3>
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+                <button class="btn btn-sm btn-o" onclick="undoLast()">↩️ Undo</button>
+                <button class="btn btn-sm btn-o" onclick="showSpendingChart()">📈 Spese</button>
+                <button class="btn btn-sm btn-o" onclick="toggleNotes()">📝 Note</button>
+            </div>
+            <div id="general-notes" style="display:none;margin-bottom:8px">
+                <textarea id="notes-area" style="width:100%;height:80px;padding:8px;border-radius:6px;border:1px solid #2a3a4a;background:#0f1923;color:#fff;font-size:.85em;resize:vertical" placeholder="Appunti generali per l'asta..." oninput="saveGeneralNotes()"></textarea>
+            </div>
+            <div id="t-sum" style="display:flex;gap:4px;flex-wrap:wrap;margin:3px 0"></div>
+            <div id="available-count" style="font-size:.75em;color:#888;margin:2px 0"></div>
+            <div id="missing-roles" style="font-size:.8em;color:#ff9800;margin:4px 0"></div>
+            <div id="avg-prices" style="font-size:.75em;color:#888;margin:2px 0"></div>
+            <div class="sec-t">Moduli Mantra (clicca per dettagli)</div>
+            <div id="moduli" style="display:flex;flex-wrap:wrap;gap:3px;margin:4px 0"></div>
+            <button class="btn btn-sm btn-o" onclick="suggestBestXI()" style="margin:4px 0">💡 Suggerisci top 11</button>
+            <div style="display:flex;gap:24px;margin-top:6px;align-items:flex-start">
+                <div id="modulo-detail" style="font-size:.75em;color:#888;min-width:200px"></div>
+                <div style="flex:1;min-width:120px">
+                    <div class="sec-t">Titolari (11)</div>
+                    <div id="t-start"></div>
+                </div>
+                <div style="flex:1;min-width:120px">
+                    <div class="sec-t">Panchina</div>
+                    <div id="t-bench"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Player list -->
+        <div class="row" style="margin-top:8px">
+            <input type="text" id="search" placeholder="🔍 Cerca..." autocomplete="off" oninput="filterList()">
+            <select id="f-squad" onchange="filterList()" style="flex:1"><option value="">Tutte le squadre</option></select>
+            <select id="f-tier" onchange="filterList()" style="flex:1">
+                <option value="">Fascia</option>
+                <option value="TOP">TOP</option>
+                <option value="SEMITOP">SEMITOP</option>
+                <option value="SOTTO AI SEMITOP">SOTTO SEMITOP</option>
+                <option value="JOLLY">JOLLY</option>
+                <option value="FASCIA ALTA">FASCIA ALTA</option>
+                <option value="FASCIA MEDIA">FASCIA MEDIA</option>
+                <option value="LOW COST">LOW COST</option>
+                <option value="SOPRA AI LOW COST">SOPRA LOW COST</option>
+                <option value="SCOMMESSE">SCOMMESSE</option>
+                <option value="GIOVANI SCOMMESSE">GIOVANI SCOMMESSE</option>
+                <option value="INFORTUNATI">INFORTUNATI</option>
+                <option value="A RISCHIO">A RISCHIO</option>
+                <option value="DA EVITARE">DA EVITARE</option>
+                <option value="LEGHE NUMEROSE">LEGHE NUMEROSE</option>
+                <option value="RIG">Rigoristi</option>
+            </select>
+            <select id="f-role" onchange="filterList()" style="max-width:70px">
+                <option value="">Ruolo</option>
+                <option value="Por">Por</option>
+                <option value="Dc">Dc</option><option value="Dd">Dd</option><option value="Ds">Ds</option>
+                <option value="E">E</option><option value="B">B</option>
+                <option value="M">M</option><option value="C">C</option>
+                <option value="W">W</option><option value="T">T</option>
+                <option value="Pc">Pc</option><option value="A">A</option>
+            </select>
+            <select id="f-sort" onchange="filterList()" style="max-width:60px">
+                <option value="quota-desc">€↓</option>
+                <option value="quota-asc">€↑</option>
+                <option value="nome-asc">AZ</option>
+                <option value="fm-desc">FM↓</option>
+                <option value="value-desc">Val↓</option>
+            </select>
+            <button id="fav-filter-btn" onclick="toggleFavFilter()" style="padding:6px 10px;border-radius:7px;background:#1a2a3a;border:1px solid #2a3a4a;color:#aaa;font-size:12px;cursor:pointer">⭐</button>
+            <button onclick="showShoppingList()" style="padding:6px 10px;border-radius:7px;background:#1a2a3a;border:1px solid #2a3a4a;color:#aaa;font-size:12px;cursor:pointer">🎯</button>
+        </div>
+        <div id="compare-panel" class="panel" style="display:none;border-color:#9c27b0;position:fixed;bottom:0;left:0;right:0;z-index:50;max-height:35vh;overflow-y:auto;margin:0;border-radius:10px 10px 0 0">
+            <h3 style="color:#9c27b0">⚖️ Confronto <button class="btn btn-sm" onclick="clearCompare()" style="float:right;background:#333;color:#aaa">✕</button></h3>
+            <div id="compare-content" style="display:flex;gap:12px;overflow-x:auto"></div>
+        </div>
+        <div id="player-detail" class="panel" style="display:none;border-color:#4fc3f7;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;width:92%;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:0 4px 30px rgba(0,0,0,.8)"></div>
+        <div id="plist" style="background:#0f1923;border-radius:9px;margin-top:4px;overflow-y:auto;flex:1"></div>
+    </div>
+
+    <!-- STATS -->
+    <div id="sec-stats" style="display:none">
+        <div class="tabs" id="st-tabs">
+            <button class="tab active" onclick="loadSt('guida_asta_por',this)">🎯 Por</button>
+            <button class="tab" onclick="loadSt('guida_asta_dif',this)">🎯 Dif</button>
+            <button class="tab" onclick="loadSt('guida_asta_cen',this)">🎯 Cen</button>
+            <button class="tab" onclick="loadSt('guida_asta_att',this)">🎯 Att</button>
+            <button class="tab" onclick="loadSt('formazioni_tipo',this)">📋 Formazioni</button>
+            <button class="tab" onclick="loadSt('rigoristi',this)">⚽ Rigoristi</button>
+            <button class="tab" onclick="loadSt('gerarchie_portieri',this)">🧤 Portieri</button>
+            <button class="tab" onclick="loadSt('chi_prendere_difensori',this)">🛡️+</button>
+            <button class="tab" onclick="loadSt('chi_prendere_centrocampisti',this)">⚙️+</button>
+            <button class="tab" onclick="loadSt('chi_prendere_attaccanti',this)">⚡+</button>
+        </div>
+        <div class="row"><select id="st-sq" onchange="filterSt()" style="width:100%"><option value="">Tutte le squadre</option></select></div>
+        <div id="stats-content" class="panel"></div>
+    </div>
+
+    <!-- OPPONENTS -->
+    <div id="sec-opp" style="display:none">
+        <div class="panel panel-hl">
+            <h3>👥 Avversari</h3>
+            <div class="row">
+                <input type="text" id="o-name" placeholder="Nome squadra">
+                <input type="number" id="o-bud" value="500" style="max-width:65px">
+                <button onclick="addOpp()">+</button>
+            </div>
+        </div>
+        <div id="opp-list"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="sec-settings" style="display:none">
+        <div class="panel">
+            <h3>⚙️ Impostazioni</h3>
+
+            <div class="sec-t">📁 Listone giocatori</div>
+            <p style="font-size:.8em;color:#888;margin:4px 0">Carica il listone della nuova stagione (CSV: nome, ruolo, squadra, quotazione)</p>
+            <div class="upload"><label for="ul">📁 Seleziona file CSV</label><input type="file" id="ul" accept=".csv" onchange="doUpload()"></div>
+
+            <div class="sec-t" style="margin-top:16px">🔗 Link SOS Fanta</div>
+            <p style="font-size:.8em;color:#888;margin:4px 0">Aggiorna i link quando escono le guide della nuova stagione</p>
+            <div class="row">
+                <select id="set-link-key" style="flex:1">
+                    <option value="guida_asta_por">Guida Asta Portieri</option>
+                    <option value="guida_asta_dif">Guida Asta Difensori</option>
+                    <option value="guida_asta_cen">Guida Asta Centrocampisti</option>
+                    <option value="guida_asta_att">Guida Asta Attaccanti</option>
+                    <option value="formazioni_tipo">Formazioni Tipo</option>
+                    <option value="rigoristi">Rigoristi</option>
+                    <option value="gerarchie_portieri">Gerarchie Portieri</option>
+                </select>
+            </div>
+            <div class="row">
+                <input type="text" id="set-link-url" placeholder="Nuovo URL...">
+                <button onclick="saveLink()">Salva</button>
+            </div>
+            <button class="btn btn-sm btn-o" onclick="doRefresh()" style="margin-top:6px">🔄 Ri-scrapea tutti i link</button>
+
+            <div class="sec-t" style="margin-top:16px">🗑️ Reset dati</div>
+            <div class="row">
+                <button class="btn btn-sm" style="background:#f44336" onclick="if(confirm('Cancellare tutta la rosa e gli avversari?')){localStorage.clear();location.reload();}">Reset completo</button>
+            </div>
+        </div>
+    </div>
+</div>
+        <div class="panel panel-hl">
+            <h3>👥 Avversari</h3>
+            <div class="row">
+                <input type="text" id="o-name" placeholder="Nome squadra">
+                <input type="number" id="o-bud" value="500" style="max-width:65px">
+                <button onclick="addOpp()">+</button>
+            </div>
+        </div>
+        <div id="opp-list"></div>
+    </div>
+</div>
+
+<script>
+let myTeam=JSON.parse(localStorage.getItem('ab_team')||'[]');
+let budget=parseInt(localStorage.getItem('ab_budget')||'500');
+let opps=JSON.parse(localStorage.getItem('ab_opps')||'[]');
+let favorites=JSON.parse(localStorage.getItem('ab_favs')||'[]');
+let notes=JSON.parse(localStorage.getItem('ab_notes')||'{}');
+let shoppingList=JSON.parse(localStorage.getItem('ab_shop')||'[]');
+let undoStack=[];
+let allPlayers=[];
+let playerTags={};
+function getTagsHtml(nome){
+    const parts=nome.split(' ');
+    const surname=parts[0].toLowerCase();
+    const firstname=parts.length>1?parts[1].toLowerCase():'';
+    // Try surname_initial first (for duplicates like Thuram)
+    const key2=surname+'_'+(firstname?firstname[0]:'');
+    const tags=playerTags[key2]||playerTags[surname]||[];
+    return tags.map(t=>'<span style="margin-left:4px;padding:1px 4px;border-radius:3px;font-size:.6em;font-weight:bold;background:'+(t==='TOP'?'#f44336':t.includes('SEMITOP')?'#ff9800':t==='RIG'?'#ff9800':t.includes('JOLLY')?'#9c27b0':t.includes('LOW')?'#4caf50':'#666')+';color:#fff">'+t+'</span>').join('');
+}
+let stFull='';
+
+const MODULI={
+    '3-4-3':'Por; Dc,Dc,Dc; E,M,M,E; W,Pc,W',
+    '3-4-1-2':'Por; Dc,Dc,Dc; E,M,M,E; T; Pc,Pc',
+    '3-5-2':'Por; Dc,Dc,Dc; E,M,C,M,E; Pc,Pc',
+    '4-3-3':'Por; Dd,Dc,Dc,Ds; M,C,M; W,Pc,W',
+    '4-4-2':'Por; Dd,Dc,Dc,Ds; E,M,M,E; Pc,Pc',
+    '4-3-1-2':'Por; Dd,Dc,Dc,Ds; M,C,M; T; Pc,Pc',
+    '4-2-3-1':'Por; Dd,Dc,Dc,Ds; M,M; W,T,W; Pc',
+    '3-5-1-1':'Por; Dc,Dc,Dc; E,M,C,M,E; T; Pc',
+    '3-4-2-1':'Por; Dc,Dc,Dc; E,M,M,E; W,W; Pc',
+    '4-4-1-1':'Por; Dd,Dc,Dc,Ds; E,M,M,E; T; Pc',
+    '4-1-4-1':'Por; Dd,Dc,Dc,Ds; M; E,C,C,E; Pc'
+};
+
+// Sections
+function showSec(s,el){
+    document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    ['asta','stats','opp','settings'].forEach(id=>{
+        const el=document.getElementById('sec-'+id);
+        if(id===s) el.style.display=id==='asta'?'flex':'block';
+        else el.style.display='none';
+    });
+    if(s==='stats')loadSt('guida_asta_por',document.querySelector('#st-tabs .tab'));
+    if(s==='opp')renderOpps();
+    if(s==='asta')filterList();
+}
+
+// Load all players
+async function loadAllPlayers(){
+    const r=await fetch('/api/svincolati');
+    allPlayers=await r.json();
+    filterList();
+}
+
+// Filter & render player list
+let favFilterOn=false;
+function toggleFavFilter(){
+    favFilterOn=!favFilterOn;
+    document.getElementById('fav-filter-btn').style.background=favFilterOn?'#ff9800':'#1a2a3a';
+    filterList();
+}
+function filterList(){
+    const q=document.getElementById('search').value.toLowerCase();
+    const role=document.getElementById('f-role').value;
+    const tier=document.getElementById('f-tier').value;
+    const sq=document.getElementById('f-squad').value;
+    const sort=document.getElementById('f-sort').value;
+    const taken=new Set([...myTeam.map(p=>p.nome.toLowerCase()),...opps.flatMap(o=>o.players.map(p=>p.nome.toLowerCase()))]);
+    let list=allPlayers.filter(p=>{
+        if(taken.has(p.nome.toLowerCase()))return false;
+        if(q&&!p.nome.toLowerCase().includes(q))return false;
+        if(role&&!p.ruolo_mantra.split(';').some(r=>r===role)&&p.ruolo!==role)return false;
+        if(sq&&p.squadra.toLowerCase()!==sq.toLowerCase())return false;
+        if(favFilterOn&&!favorites.includes(p.nome))return false;
+        if(tier){
+            const surname=p.nome.split(' ')[0].toLowerCase();
+            const tags=playerTags[surname]||playerTags[surname+'_'+((p.nome.split(' ')[1]||'')[0]||'').toLowerCase()]||[];
+            if(!tags.some(t=>t.includes(tier)))return false;
+        }
+        return true;
+    });
+    if(sort==='quota-desc')list.sort((a,b)=>b.quotazione-a.quotazione);
+    else if(sort==='quota-asc')list.sort((a,b)=>a.quotazione-b.quotazione);
+    else if(sort==='nome-asc')list.sort((a,b)=>a.nome.localeCompare(b.nome));
+    else if(sort==='fm-desc')list.sort((a,b)=>(b.fm||0)-(a.fm||0));
+    else if(sort==='value-desc')list.sort((a,b)=>((b.fm||0)/Math.max(b.quotazione,1))-((a.fm||0)/Math.max(a.quotazione,1)));
+    renderList(list);
+}
+
+function renderList(players){
+    const oppOptions=opps.map((o,i)=>`<option value="${i}">${o.name}</option>`).join('');
+    document.getElementById('plist').innerHTML=players.map(p=>{
+        const safeName=p.nome.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        const isFav=favorites.includes(p.nome);
+        const val=p.fm&&p.quotazione?(p.fm/p.quotazione*10).toFixed(1):'';
+        const note=notes[p.nome]||'';
+        return `
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #1a2a3a">
+            <span style="cursor:pointer;font-size:1.1em" onclick="toggleFav('${safeName}')">${isFav?'⭐':'☆'}</span>
+            <span class="role role-${p.ruolo_mantra.split(';')[0]}">${p.ruolo_mantra}</span>
+            <span style="color:#666;font-size:.7em">${p.ruolo}</span>
+            <span style="flex:1;cursor:pointer" onclick="showDetail('${safeName}')"><b>${p.nome}</b> <span style="color:#666;font-size:.85em">${p.squadra}</span>${p.nuovo?'<span style="margin-left:4px;padding:1px 4px;border-radius:3px;font-size:.6em;font-weight:bold;background:#2196f3;color:#fff">🆕</span>':''}${getTagsHtml(p.nome)}${note?'<span style="margin-left:3px" title="'+note.replace(/"/g,'&quot;')+'">📝</span>':''}</span>
+            <span style="color:#888;font-size:.85em;min-width:35px">${p.fm?p.fm:''}</span>
+            <span style="color:#9c27b0;font-size:.75em;min-width:22px" title="Valore FM/Prezzo">${val}</span>
+            <span style="color:#4fc3f7;font-weight:bold;min-width:25px">${p.quotazione}</span>
+            <select style="padding:6px;font-size:.85em;background:#0f1923;color:#ccc;border:1px solid #2a3a4a;border-radius:5px;width:130px" class="assign-sel">
+                <option value="me">🏠 Io</option>${oppOptions}
+            </select>
+            <input type="number" class="assign-price" placeholder="€" style="width:55px;padding:6px;font-size:.85em;background:#0f1923;color:#fff;border:1px solid #2a3a4a;border-radius:5px">
+            <button style="padding:6px 16px;border-radius:5px;border:none;background:#ff9800;color:#000;font-weight:bold;font-size:.85em;cursor:pointer" onclick="assignPlayer('${safeName}','${p.ruolo}','${p.ruolo_mantra}','${p.squadra}',${p.fm||0},this)">→</button>
+        </div>`;
+    }).join('')||'<div style="padding:20px;text-align:center;color:#666">Nessun giocatore</div>';
+}
+
+async function showDetail(nome){
+    const surname=nome.split(' ')[0];
+    const r=await fetch(`/api/search?q=${encodeURIComponent(surname)}`);
+    const arr=await r.json();
+    if(!arr.length){document.getElementById('player-detail').innerHTML='<div style="padding:10px;color:#888">Non trovato nel database storico (giocatore nuovo?)</div>';document.getElementById('player-detail').style.display='block';return;}
+    const p=arr[0];
+    const det=document.getElementById('player-detail');
+    det.style.display='block';
+    const slotsLeft=28-myTeam.length;
+    const maxSpend=slotsLeft>1?budget-(slotsLeft-1):budget;
+    det.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+                <div style="font-size:1.2em;font-weight:bold"><span class="role role-${(p.ruolo_mantra||p.ruolo).split(';')[0]}">${p.ruolo_mantra||p.ruolo}</span> ${p.nome}</div>
+                <div style="color:#888;font-size:.85em">${p.squadra} · ${p.stagioni} stagioni${p.titolare?' · ✅ Titolare':''}${p.rigorista?' · ⚽ Rigorista':''}</div>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:1.4em;font-weight:bold;color:#4fc3f7">${p.prezzo_suggerito} cr</div>
+                <div style="font-size:.7em;color:#888">max ${p.prezzo_max}${p.prezzo_mercato?' · lega:'+p.prezzo_mercato:''}</div>
+                <div style="font-size:.7em;color:#4caf50">💰 Puoi spendere max: ${maxSpend}cr</div>
+            </div>
+        </div>
+        <div class="stats" style="margin-top:8px">
+            <div class="st"><div class="st-v g">${p.fm_proiettata}</div><div class="st-l">FM proiettata</div></div>
+            <div class="st"><div class="st-v">${p.media_gol}</div><div class="st-l">Gol/anno</div></div>
+            <div class="st"><div class="st-v">${p.media_assist}</div><div class="st-l">Assist/anno</div></div>
+            <div class="st"><div class="st-v ${p.consistenza>=70?'g':p.consistenza<40?'r':''}">${p.consistenza}%</div><div class="st-l">Consistenza</div></div>
+            <div class="st"><div class="st-v ${p.rischio_infortunio<=20?'g':p.rischio_infortunio>40?'r':''}">${p.rischio_infortunio}%</div><div class="st-l">Rischio infort.</div></div>
+            <div class="st"><div class="st-v">${p.media_presenze}</div><div class="st-l">Presenze/anno</div></div>
+        </div>
+        <div style="margin-top:10px;font-size:.95em">
+            <table style="width:100%;border-collapse:collapse">
+                <tr style="color:#888;border-bottom:1px solid #2a3a4a"><th style="text-align:left;padding:6px">Stagione</th><th style="padding:6px">Squadra</th><th style="padding:6px">Pres</th><th style="padding:6px">FM</th><th style="padding:6px">Gol</th><th style="padding:6px">Assist</th></tr>
+                ${p.storico.map(s=>`<tr style="border-bottom:1px solid #1a2a3a"><td style="padding:6px">${s.stagione}</td><td style="padding:6px">${s.squadra}</td><td style="padding:6px;text-align:center">${s.presenze}</td><td style="padding:6px;text-align:center;color:#4fc3f7;font-weight:bold">${s.fantamedia}</td><td style="padding:6px;text-align:center">${s.gol}</td><td style="padding:6px;text-align:center">${s.assist}</td></tr>`).join('')}
+            </table>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="addToCompare('${p.nome.replace(/'/g,"\\'")}')">⚖️ Confronta</button>
+            <button class="btn btn-sm" onclick="addNote('${p.nome.replace(/'/g,"\\'")}')">📝 Nota</button>
+            <button class="btn btn-sm" style="background:#333;color:#aaa" onclick="document.getElementById('player-detail').style.display='none'">✕ Chiudi</button>
+        </div>
+    `;
+    det.scrollIntoView({behavior:'smooth'});
+}
+
+// Show unmatched players
+function showUnmatched(){
+    const unmatched=allPlayers.filter(p=>p.nuovo).sort((a,b)=>b.quotazione-a.quotazione);
+    const det=document.getElementById('player-detail');
+    det.style.display='block';
+    det.innerHTML=`<h3 style="color:#ff9800">⚠️ ${unmatched.length} giocatori senza storico</h3>
+        <p style="color:#888;font-size:.85em;margin:6px 0">Questi giocatori non hanno dati nelle ultime 5 stagioni di Serie A. Puoi mapparli in <code>data/mapping_nomi.csv</code></p>
+        <div style="max-height:300px;overflow-y:auto;margin-top:8px">${unmatched.map(p=>`<div style="padding:4px 0;border-bottom:1px solid #2a3a4a;font-size:.9em"><span class="role role-${p.ruolo_mantra.split(';')[0]}">${p.ruolo_mantra}</span> <b>${p.nome}</b> <span style="color:#666">${p.squadra}</span> <span style="color:#4fc3f7">${p.quotazione}</span></div>`).join('')}</div>
+        <button class="btn btn-sm" style="margin-top:8px" onclick="document.getElementById('player-detail').style.display='none'">✕ Chiudi</button>`;
+}
+
+// Compare
+let compareList=[];
+async function addToCompare(nome){
+    if(compareList.length>=3)compareList.shift();
+    const surname=nome.split(' ')[0];
+    const r=await fetch(`/api/search?q=${encodeURIComponent(surname)}`);
+    const arr=await r.json();
+    if(!arr.length)return;
+    const p=arr[0];
+    if(!compareList.find(x=>x.nome===p.nome))compareList.push(p);
+    renderCompare();
+}
+function clearCompare(){compareList=[];document.getElementById('compare-panel').style.display='none';}
+function renderCompare(){
+    if(!compareList.length){document.getElementById('compare-panel').style.display='none';return;}
+    document.getElementById('compare-panel').style.display='block';
+    document.getElementById('compare-content').innerHTML=compareList.map(p=>`
+        <div style="flex:1;min-width:150px;background:#0f1923;border-radius:8px;padding:10px">
+            <div style="font-weight:bold;margin-bottom:6px"><span class="role role-${(p.ruolo_mantra||p.ruolo).split(';')[0]}">${p.ruolo_mantra||p.ruolo}</span> ${p.nome}</div>
+            <div style="font-size:.85em;color:#888">${p.squadra}</div>
+            <div class="stats" style="margin-top:6px">
+                <div class="st"><div class="st-v g">${p.fm_proiettata}</div><div class="st-l">FM</div></div>
+                <div class="st"><div class="st-v">${p.media_gol}</div><div class="st-l">Gol</div></div>
+                <div class="st"><div class="st-v">${p.media_assist}</div><div class="st-l">Ass</div></div>
+                <div class="st"><div class="st-v">${p.consistenza}%</div><div class="st-l">Cons</div></div>
+                <div class="st"><div class="st-v">${p.media_presenze}</div><div class="st-l">Pres</div></div>
+                <div class="st"><div class="st-v">${p.prezzo_suggerito}</div><div class="st-l">Prezzo</div></div>
+            </div>
+        </div>`).join('');
+}
+
+function assignPlayer(nome,ruolo,ruoloMantra,squadra,fm,btn){
+    const row=btn?btn.parentElement:null;
+    const sel=row?row.querySelector('.assign-sel'):null;
+    const priceInput=row?row.querySelector('.assign-price'):null;
+    const price=priceInput?parseInt(priceInput.value)||1:1;
+    const target=sel?sel.value:'me';
+    if(target==='me'){
+        myTeam.push({nome,ruolo,ruolo_mantra:ruoloMantra,squadra,prezzo:price,fm_proiettata:fm});
+        budget-=price;
+        undoStack.push({type:'me',nome});
+        saveTeam();renderTeam();
+    } else {
+        const oi=parseInt(target);
+        opps[oi].players.push({nome,ruolo_mantra:ruoloMantra,squadra,costo:price});
+        undoStack.push({type:'opp',nome,oppIdx:oi});
+        saveOpps();
+    }
+    filterList();
+}
+
+// Team
+function removeFromTeam(i){budget+=myTeam[i].prezzo;myTeam.splice(i,1);saveTeam();renderTeam();filterList();}
+function saveTeam(){localStorage.setItem('ab_team',JSON.stringify(myTeam));localStorage.setItem('ab_budget',budget.toString());}
+
+function renderTeam(){
+    document.getElementById('bud').textContent=`${budget}cr | ${myTeam.length}/28`;
+    const counts={};
+    myTeam.forEach(p=>{(p.ruolo_mantra||p.ruolo).split(';').forEach(r=>{counts[r]=(counts[r]||0)+1;});});
+    document.getElementById('t-sum').innerHTML=Object.entries(counts).map(([r,n])=>`<span class="role role-${r}">${r}:${n}</span>`).join('');
+
+    // Available count
+    const taken=new Set([...myTeam.map(p=>p.nome.toLowerCase()),...opps.flatMap(o=>o.players.map(p=>p.nome.toLowerCase()))]);
+    const available=allPlayers.filter(p=>!taken.has(p.nome.toLowerCase()));
+    const newCount=available.filter(p=>p.nuovo).length;
+    let countText=`Disponibili: ${available.length}/${allPlayers.length}`;
+    if(newCount) countText+=` · <span style="cursor:pointer;color:#ff9800" onclick="showUnmatched()">⚠️ ${newCount} senza storico</span>`;
+    document.getElementById('available-count').innerHTML=countText;
+
+    // Scarcity alert - roles running low
+    const availByRole={};
+    available.forEach(p=>{p.ruolo_mantra.split(';').forEach(r=>{availByRole[r]=(availByRole[r]||0)+1;});});
+    const scarce=Object.entries(availByRole).filter(([r,n])=>n<=5&&['Pc','A','W','T','Por'].includes(r)).map(([r,n])=>`${r}:${n}`);
+    if(scarce.length) document.getElementById('available-count').textContent+=` · ⚠️ Pochi rimasti: ${scarce.join(', ')}`;
+
+    // Max spendable suggestion
+    const slotsLeft=28-myTeam.length;
+    const maxSpend=slotsLeft>1?budget-(slotsLeft-1):budget;
+    document.getElementById('available-count').textContent+=` · 💰 Max spendibile: ${maxSpend}cr`;
+
+    // Missing roles for best coverage modulo
+    let bestMod='',bestPct=0;
+    const missingAll={};
+    for(const [m,roles] of Object.entries(MODULI)){
+        const needed={};
+        roles.replace(/Por|Dc|Dd|Ds|E|M|C|W|T|Pc|A|B/g, r=>{ needed[r]=(needed[r]||0)+1; return r; });
+        let covered=0,total=0,missing=[];
+        for(const [r,n] of Object.entries(needed)){
+            total+=n;
+            const have=counts[r]||0;
+            covered+=Math.min(have,n);
+            if(have<n) missing.push(`${n-have}${r}`);
+        }
+        const pct=total?covered/total:0;
+        if(pct>bestPct){bestPct=pct;bestMod=m;missingAll.best=missing;}
+    }
+    if(missingAll.best&&missingAll.best.length>0){
+        document.getElementById('missing-roles').textContent=`⚠️ Per completare ${bestMod}: ti servono ${missingAll.best.join(', ')}`;
+    } else if(bestPct===1){
+        document.getElementById('missing-roles').innerHTML='<span style="color:#4caf50">✅ Hai copertura 100% su almeno un modulo!</span>';
+    } else {
+        document.getElementById('missing-roles').textContent='';
+    }
+
+    // Avg prices by tier in the league (from opponents' purchases)
+    const allPurchases=[...myTeam,...opps.flatMap(o=>o.players)];
+    if(allPurchases.length>5){
+        const byRole={};
+        allPurchases.forEach(p=>{
+            const r=p.ruolo||p.ruolo_mantra||'?';
+            byRole[r]=byRole[r]||[];
+            byRole[r].push(p.prezzo||p.costo||0);
+        });
+        const avgs=Object.entries(byRole).map(([r,prices])=>`${r}:${Math.round(prices.reduce((a,b)=>a+b,0)/prices.length)}cr`).join(' · ');
+        document.getElementById('avg-prices').textContent=`📊 Media prezzi lega: ${avgs}`;
+    } else {
+        document.getElementById('avg-prices').textContent='';
+    }
+    document.getElementById('moduli').innerHTML=Object.entries(MODULI).map(([m,roles])=>{
+        const needed={};
+        roles.replace(/Por|Dc|Dd|Ds|E|M|C|W|T|Pc|A|B/g, r=>{ needed[r]=(needed[r]||0)+1; return r; });
+        let covered=0, total=0;
+        for(const [r,n] of Object.entries(needed)){
+            total+=n;
+            covered+=Math.min(counts[r]||0, n);
+        }
+        const pct=total?Math.round(covered/total*100):0;
+        const color=pct===100?'#4caf50':pct>=70?'#ff9800':'#666';
+        return `<span class="mod" onclick="showModulo('${m}')" style="border:1px solid ${color};padding:5px 10px;font-size:.85em">${m} <b style="color:${color}">${pct}%</b></span>`;
+    }).join('');
+
+    // Starters/bench
+    const por=[...myTeam.filter(p=>p.ruolo==='P')].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
+    const difs=[...myTeam.filter(p=>p.ruolo==='D')].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
+    const offs=[...myTeam.filter(p=>p.ruolo==='C'||p.ruolo==='A')].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
+    const starters=[...por.slice(0,1),...difs.slice(0,5),...offs.slice(0,5)];
+    const bench=[...por.slice(1),...difs.slice(5),...offs.slice(5)];
+    const rp=(p)=>`<span class="tp"><span class="role role-${(p.ruolo_mantra||p.ruolo).split(';')[0]}">${p.ruolo_mantra||p.ruolo}</span>${p.nome} ${p.prezzo}cr<span class="x" onclick="removeFromTeam(${myTeam.indexOf(p)})">✕</span></span>`;
+    document.getElementById('t-start').innerHTML=starters.map(rp).join('')||'<span style="color:#555">—</span>';
+    document.getElementById('t-bench').innerHTML=bench.map(rp).join('')||'<span style="color:#555">—</span>';
+}
+
+function showModulo(m){
+    document.querySelectorAll('.mod').forEach(e=>e.classList.remove('sel'));
+    event.target.classList.add('sel');
+    const roles=MODULI[m];
+    const det=document.getElementById('modulo-detail');
+    if(det.dataset.current===m){det.innerHTML='';det.dataset.current='';return;}
+    det.dataset.current=m;
+    det.innerHTML=`<b>${m}</b>: ${roles}<br><img src="/static/moduli/${m}.png" style="max-width:100%;max-height:400px;margin-top:4px;border-radius:6px" onerror="this.style.display='none'">`;
+
+    // Update missing roles for this modulo
+    const counts={};
+    myTeam.forEach(p=>{(p.ruolo_mantra||p.ruolo).split(';').forEach(r=>{counts[r]=(counts[r]||0)+1;});});
+    const needed={};
+    roles.replace(/Por|Dc|Dd|Ds|E|M|C|W|T|Pc|A|B/g, r=>{ needed[r]=(needed[r]||0)+1; return r; });
+    const missing=[];
+    for(const [r,n] of Object.entries(needed)){
+        const have=counts[r]||0;
+        if(have<n) missing.push(`${n-have} ${r}`);
+    }
+    if(missing.length){
+        document.getElementById('missing-roles').innerHTML=`<span style="color:#ff9800">⚠️ Per il <b>${m}</b> ti servono: ${missing.join(', ')}</span>`;
+    } else {
+        document.getElementById('missing-roles').innerHTML=`<span style="color:#4caf50">✅ Hai tutti i ruoli per il ${m}!</span>`;
+    }
+}
+
+function suggestBestXI(){
+    const det=document.getElementById('modulo-detail');
+    const currentMod=det.dataset.current;
+    if(!currentMod){alert('Seleziona prima un modulo');return;}
+
+    const roles=MODULI[currentMod];
+    const needed=[];
+    roles.replace(/Por|Dc|Dd|Ds|E|M|C|W|T|Pc|A|B/g, r=>{ needed.push(r); return r; });
+
+    const taken=new Set([...myTeam.map(p=>p.nome.toLowerCase()),...opps.flatMap(o=>o.players.map(p=>p.nome.toLowerCase()))]);
+    const available=allPlayers.filter(p=>!taken.has(p.nome.toLowerCase())&&p.fm>0&&!p.nuovo&&p.quotazione>=5);
+
+    // Budget: ~75% for starters, rest for 17 bench players at ~1-3cr each
+    const benchBudget=17*2; // ~34cr for bench
+    const starterBudget=budget-benchBudget;
+
+    // Greedy: pick best player per role but respect total budget
+    const used=new Set();
+    const xi=[];
+    let spent=0;
+
+    // Sort needed roles by scarcity (fewer available = pick first)
+    const roleScarcity=needed.map(role=>{
+        const count=available.filter(p=>{
+            const mr=p.ruolo_mantra.split(';');
+            if(role==='Por')return p.ruolo==='Por';
+            if(['Dc','Dd','Ds'].includes(role))return mr.some(r=>['Dc','Dd','Ds','B'].includes(r))||p.ruolo==='D';
+            if(role==='E')return mr.includes('E')||mr.includes('B');
+            if(role==='M')return mr.includes('M')||mr.includes('C');
+            if(role==='C')return mr.includes('C')||mr.includes('M');
+            if(role==='W')return mr.includes('W')||mr.includes('A');
+            if(role==='T')return mr.includes('T')||mr.includes('C');
+            if(role==='Pc')return mr.includes('Pc')||p.ruolo==='A';
+            if(role==='A')return mr.includes('A')||mr.includes('W')||p.ruolo==='A';
+            return false;
+        }).length;
+        return {role,count};
+    });
+
+    // Pick players: balance FM vs cost
+    for(const {role} of roleScarcity){
+        const candidates=available.filter(p=>{
+            if(used.has(p.nome))return false;
+            const mr=p.ruolo_mantra.split(';');
+            if(role==='Por')return p.ruolo==='Por';
+            if(['Dc','Dd','Ds'].includes(role))return mr.some(r=>['Dc','Dd','Ds','B'].includes(r))||p.ruolo==='D';
+            if(role==='E')return mr.includes('E')||mr.includes('B');
+            if(role==='M')return mr.includes('M')||mr.includes('C');
+            if(role==='C')return mr.includes('C')||mr.includes('M');
+            if(role==='W')return mr.includes('W')||mr.includes('A');
+            if(role==='T')return mr.includes('T')||mr.includes('C');
+            if(role==='Pc')return mr.includes('Pc')||p.ruolo==='A';
+            if(role==='A')return mr.includes('A')||mr.includes('W')||p.ruolo==='A';
+            return false;
+        }).sort((a,b)=>(b.fm||0)-(a.fm||0));
+
+        // Pick best that fits remaining budget
+        const remaining=starterBudget-spent;
+        const slotsLeft=needed.length-xi.length;
+        const maxForThis=remaining-(slotsLeft-1)*3; // leave at least 3cr per remaining slot
+
+        let picked=null;
+        for(const c of candidates){
+            if(c.quotazione<=maxForThis){picked=c;break;}
+        }
+        if(!picked&&candidates.length)picked=candidates[candidates.length-1]; // cheapest
+
+        if(picked){
+            xi.push({role,player:picked});
+            used.add(picked.nome);
+            spent+=picked.quotazione;
+        } else {
+            xi.push({role,player:null});
+        }
+    }
+
+    const panel=document.getElementById('player-detail');
+    panel.style.display='block';
+    panel.innerHTML=`<h3 style="color:#4fc3f7">💡 Top 11 per ${currentMod} (budget: ${starterBudget}cr per titolari)</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:.9em">
+            <tr style="color:#888;border-bottom:1px solid #2a3a4a"><th style="padding:6px;text-align:left">Pos</th><th style="padding:6px;text-align:left">Giocatore</th><th style="padding:6px">Squadra</th><th style="padding:6px">FM</th><th style="padding:6px">Quota</th></tr>
+            ${xi.map(x=>`<tr style="border-bottom:1px solid #1a2a3a">
+                <td style="padding:6px"><span class="role role-${x.role}">${x.role}</span></td>
+                <td style="padding:6px;font-weight:bold">${x.player?x.player.nome:'—'}</td>
+                <td style="padding:6px;color:#888">${x.player?x.player.squadra:''}</td>
+                <td style="padding:6px;color:#4fc3f7;text-align:center">${x.player?x.player.fm:''}</td>
+                <td style="padding:6px;text-align:center">${x.player?x.player.quotazione:''}</td>
+            </tr>`).join('')}
+        </table>
+        <div style="margin-top:8px;font-size:.85em;color:#888">
+            Costo titolari: <b style="color:#4fc3f7">${spent}cr</b> / ${starterBudget}cr disponibili<br>
+            Rimangono <b>${budget-spent}cr</b> per ${28-11} panchinari (~${Math.round((budget-spent)/17)}cr ciascuno)
+        </div>
+        <button class="btn btn-sm" style="margin-top:8px;background:#333;color:#aaa" onclick="document.getElementById('player-detail').style.display='none'">✕ Chiudi</button>`;
+}
+
+// Should buy
+let astaAcTimeout;
+function autocompleteAsta(q){
+    clearTimeout(astaAcTimeout);
+    const box=document.getElementById('a-autocomplete');
+    if(q.length<2){box.style.display='none';return;}
+    astaAcTimeout=setTimeout(()=>{
+        const matches=allPlayers.filter(p=>p.nome.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+        if(!matches.length){box.style.display='none';return;}
+        box.style.display='block';
+        box.innerHTML=matches.map(p=>`<div onclick="document.getElementById('a-name').value='${p.nome.replace(/'/g,"\\'")}';document.getElementById('a-autocomplete').style.display='none';document.getElementById('a-price').focus()"><span class="role role-${p.ruolo_mantra.split(';')[0]}">${p.ruolo_mantra}</span> ${p.nome} <span style="color:#666">(${p.squadra})</span></div>`).join('');
+    },150);
+}
+async function askBuy(){
+    const nameRaw=document.getElementById('a-name').value.trim();
+    const price=parseInt(document.getElementById('a-price').value)||0;
+    if(!nameRaw)return;
+    // Use surname for API search
+    const name=nameRaw.split(' ')[0];
+    const res=await fetch('/api/should_buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:name,prezzo:price,rosa:myTeam,budget})});
+    const d=await res.json();
+    let cls=d.consiglio.includes('PRENDI')||d.consiglio.includes('AFFARE')?'v-ok':d.consiglio.includes('VALUTA')?'v-maybe':'v-no';
+    let h=`<div class="verdict ${cls}"><b>${d.consiglio}</b><br><small>${d.motivo}</small>`;
+    if(d.giocatore)h+=`<br><small>FM:${d.giocatore.fm_proiettata} | ${d.giocatore.ruolo_mantra} | Vale:${d.giocatore.prezzo_suggerito} | Max:${d.giocatore.prezzo_max}</small><br><button class="btn btn-sm" onclick="assignPlayer('${d.giocatore.nome.replace(/'/g,"\\'")}','${d.giocatore.ruolo}','${d.giocatore.ruolo_mantra||d.giocatore.ruolo}','${d.giocatore.squadra}',${d.giocatore.fm_proiettata},null);document.getElementById('verdict').innerHTML=''">✅ Preso!</button>`;
+    h+='</div>';
+    document.getElementById('verdict').innerHTML=h;
+}
+
+// Stats
+async function loadSt(key,el){
+    currentStatsKey=key;
+    document.querySelectorAll('#st-tabs .tab').forEach(t=>t.classList.remove('active'));
+    if(el)el.classList.add('active');
+    const r=await fetch(`/api/sosfanta/${key}`);
+    const d=await r.json();
+    stFull=d.content;
+    document.getElementById('st-sq').value='';
+    renderSt(d.title,stFull);
+}
+function renderSt(title,text){
+    let h=text
+        // Section headers (bold markers)
+        .replace(/\*\*(.+?)\*\*/g,'<div style="margin-top:16px;padding:8px 12px;background:#0f1923;border-left:3px solid #4fc3f7;border-radius:4px;font-weight:bold;color:#4fc3f7;font-size:1.05em">$1</div>')
+        // Team names in CAPS with formation (e.g. ATALANTA (3-4-2-1))
+        .replace(/([A-Z]{3,}(?:\s[A-Z]+)*)\s*\(([^)]+)\)/g,'<div style="margin-top:14px;padding:6px 10px;background:#1a2a3a;border-radius:6px;border:1px solid #2a3a4a"><b style="color:#4fc3f7">$1</b> <span style="color:#ff9800">($2)</span></div>')
+        // Tier labels - all in yellow/orange like before
+        .replace(/(TOP|SEMITOP|SOTTO AI SEMITOP|JOLLY PRIMA FASCIA|JOLLY SECONDA FASCIA|JOLLY TERZA FASCIA|JOLLY QUARTA FASCIA|FASCIA ALTA|FASCIA MEDIA|LOW COST PRIMA FASCIA|LOW COST SECONDA FASCIA|SOPRA AI LOW COST|SCOMMESSE|GIOVANI SCOMMESSE|INFORTUNATI|LEGHE NUMEROSE|A RISCHIO|DA EVITARE)/g,'<b style="color:#ff9800">$1</b>')
+        // Lineup separator (semicolons become line breaks for readability)
+        .replace(/;\s*/g, ' — ')
+        // Double newlines
+        .replace(/\n\n/g,'<br><br>')
+        .replace(/\n/g,'<br>');
+    document.getElementById('stats-content').innerHTML=`<div style="font-size:1.1em;font-weight:bold;color:#4fc3f7;margin-bottom:12px">${title}</div>`+h;
+}
+function filterSt(){
+    const sq=document.getElementById('st-sq').value.toUpperCase();
+    if(!sq){renderSt('',stFull);return;}
+    const lines=stFull.split('\n');let found=[],cap=false;
+    for(const l of lines){
+        if(l.toUpperCase().includes(sq)&&(l.includes('(')||l.includes('-'))){cap=true;found=[];}
+        else if(cap&&l.match(/^[A-Z]{3,}/)&&(l.includes('(')||l.includes('-')))break;
+        if(cap)found.push(l);
+    }
+    renderSt(sq,found.join('\n')||'Non trovata');
+}
+let currentStatsKey='guida_asta_por';
+async function doRefresh(){
+    document.getElementById('stats-content').innerHTML='<div style="padding:20px;color:#888">Aggiornamento...</div>';
+    await fetch('/api/sosfanta/refresh',{method:'POST'});
+    loadSt(currentStatsKey,document.querySelector('#st-tabs .tab.active'));
+    alert('Aggiornato!');
+}
+async function updateCurrentUrl(){
+    const url=document.getElementById('custom-url').value.trim();
+    if(!url){alert('Incolla il nuovo URL');return;}
+    await fetch('/api/sosfanta/update_url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:currentStatsKey,url})});
+    document.getElementById('custom-url').value='';
+    doRefresh();
+}
+async function saveLink(){
+    const key=document.getElementById('set-link-key').value;
+    const url=document.getElementById('set-link-url').value.trim();
+    if(!url){alert('Inserisci URL');return;}
+    await fetch('/api/sosfanta/update_url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,url})});
+    document.getElementById('set-link-url').value='';
+    alert('Link salvato! Clicca "Ri-scrapea" per aggiornare i contenuti.');
+}
+function doUpload(){
+    const f=document.getElementById('ul');
+    if(!f.files.length)return;
+    const fd=new FormData();fd.append('file',f.files[0]);
+    fetch('/api/upload_listone',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+        alert(d.ok?'Listone caricato!':'Errore');
+        loadAllPlayers();
+    });
+}
+
+// Opponents
+function addOpp(){
+    const n=document.getElementById('o-name').value.trim();
+    const b=parseInt(document.getElementById('o-bud').value)||500;
+    if(!n)return;
+    opps.push({name:n,budget:b,players:[]});
+    document.getElementById('o-name').value='';
+    saveOpps();renderOpps();filterList();
+}
+function removeOpp(i){opps.splice(i,1);saveOpps();renderOpps();filterList();}
+function removeOppP(oi,pi){opps[oi].players.splice(pi,1);saveOpps();renderOpps();filterList();}
+function saveOpps(){localStorage.setItem('ab_opps',JSON.stringify(opps));}
+function renderOpps(){
+    const spent=o=>o.players.reduce((s,p)=>s+p.costo,0);
+    document.getElementById('opp-list').innerHTML=opps.map((o,oi)=>`
+        <div class="card">
+            <div class="card-h"><div><div class="card-n">${o.name} <span style="cursor:pointer;color:#f44336;font-size:.7em" onclick="removeOpp(${oi})">✕</span></div>
+            <div class="card-m">${o.players.length}/28 · Spesi:${spent(o)}/${o.budget} · Rim:${o.budget-spent(o)}</div></div>
+            <div class="card-p">${o.budget-spent(o)}<small>rimasti</small></div></div>
+            <div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:2px">${o.players.map((p,pi)=>`<span class="tp"><span class="role role-${(p.ruolo_mantra||'C').split(';')[0]}">${p.ruolo_mantra||'?'}</span>${p.nome} ${p.costo}cr<span class="x" onclick="removeOppP(${oi},${pi})">✕</span></span>`).join('')}</div>
+        </div>`).join('');
+}
+
+// General notes
+function toggleNotes(){
+    const el=document.getElementById('general-notes');
+    el.style.display=el.style.display==='none'?'block':'none';
+}
+function saveGeneralNotes(){
+    localStorage.setItem('ab_general_notes',document.getElementById('notes-area').value);
+}
+
+// Favorites
+function toggleFav(nome){
+    const i=favorites.indexOf(nome);
+    if(i>=0)favorites.splice(i,1); else favorites.push(nome);
+    localStorage.setItem('ab_favs',JSON.stringify(favorites));
+    filterList();
+}
+
+// Notes
+function addNote(nome){
+    const current=notes[nome]||'';
+    const n=prompt('Nota per '+nome+':',current);
+    if(n!==null){notes[nome]=n;localStorage.setItem('ab_notes',JSON.stringify(notes));filterList();}
+}
+
+// Shopping list
+function showShoppingList(){
+    const det=document.getElementById('player-detail');
+    det.style.display='block';
+    det.innerHTML=`<h3 style="color:#ff9800">🎯 Lista della spesa</h3>
+        <div class="row"><input type="text" id="shop-name" placeholder="Giocatore"><input type="number" id="shop-max" placeholder="Max €" style="max-width:70px"><button onclick="addToShop()">+</button></div>
+        <div id="shop-items" style="margin-top:8px">${shoppingList.map((s,i)=>`<div style="padding:4px 0;border-bottom:1px solid #2a3a4a;display:flex;justify-content:space-between"><span>${s.nome} <span style="color:#4fc3f7">max ${s.max}cr</span></span><span style="cursor:pointer;color:#f44336" onclick="removeShop(${i})">✕</span></div>`).join('')||'<span style="color:#666">Vuota</span>'}</div>
+        <button class="btn btn-sm" style="margin-top:8px;background:#333;color:#aaa" onclick="document.getElementById('player-detail').style.display='none'">✕ Chiudi</button>`;
+}
+function addToShop(){
+    const nome=document.getElementById('shop-name').value.trim();
+    const max=parseInt(document.getElementById('shop-max').value)||0;
+    if(!nome)return;
+    shoppingList.push({nome,max});
+    localStorage.setItem('ab_shop',JSON.stringify(shoppingList));
+    showShoppingList();
+}
+function removeShop(i){shoppingList.splice(i,1);localStorage.setItem('ab_shop',JSON.stringify(shoppingList));showShoppingList();}
+
+// Undo
+function undoLast(){
+    if(!undoStack.length){alert('Nulla da annullare');return;}
+    const action=undoStack.pop();
+    if(action.type==='me'){
+        const i=myTeam.findIndex(p=>p.nome===action.nome);
+        if(i>=0){budget+=myTeam[i].prezzo;myTeam.splice(i,1);saveTeam();renderTeam();}
+    } else {
+        const oi=action.oppIdx;
+        const pi=opps[oi].players.findIndex(p=>p.nome===action.nome);
+        if(pi>=0){opps[oi].players.splice(pi,1);saveOpps();renderOpps();}
+    }
+    filterList();
+}
+
+// Spending chart
+function showSpendingChart(){
+    const det=document.getElementById('player-detail');
+    det.style.display='block';
+    const data=[{name:'🏠 Io',spent:myTeam.reduce((s,p)=>s+p.prezzo,0),budget,players:myTeam.length},...opps.map(o=>({name:o.name,spent:o.players.reduce((s,p)=>s+p.costo,0),budget:o.budget,players:o.players.length}))];
+    const maxBud=Math.max(...data.map(d=>d.budget));
+    det.innerHTML=`<h3 style="color:#4fc3f7">📈 Andamento spesa</h3>
+        ${data.map(d=>{
+            const pct=d.budget?Math.round(d.spent/d.budget*100):0;
+            return `<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:.85em"><span>${d.name} (${d.players}/28)</span><span>${d.spent}/${d.budget} (${pct}%)</span></div><div style="height:12px;background:#2a3a4a;border-radius:4px;margin-top:2px"><div style="height:100%;width:${pct}%;background:${pct>80?'#f44336':pct>50?'#ff9800':'#4caf50'};border-radius:4px"></div></div></div>`;
+        }).join('')}
+        <button class="btn btn-sm" style="margin-top:8px;background:#333;color:#aaa" onclick="document.getElementById('player-detail').style.display='none'">✕ Chiudi</button>`;
+}
+
+// Init
+renderTeam();renderOpps();
+document.getElementById('notes-area').value=localStorage.getItem('ab_general_notes')||'';
+loadAllPlayers();
+fetch('/api/player_tags').then(r=>r.json()).then(t=>playerTags=t);
+fetch('/api/squads').then(r=>r.json()).then(sqs=>{
+    ['f-squad','st-sq'].forEach(id=>{
+        const s=document.getElementById(id);
+        sqs.forEach(sq=>s.innerHTML+=`<option value="${sq}">${sq}</option>`);
+    });
+});
+</script>
+</body>
+</html>

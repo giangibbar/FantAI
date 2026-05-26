@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+data/raw/
+data/processed/
+data/sosfanta/all_pages.json
+data/sosfanta/urls.json
+*.egg-info/
+dist/
+.env
