@@ -67,10 +67,8 @@ FantAI/
 
 | Fonte | Cosa fornisce |
 |-------|--------------|
-| [fantacalcio.it](https://www.fantacalcio.it) | Fantamedie, ruoli Mantra, statistiche 5 anni |
-| [fantamagic.it](https://www.fantamagic.it) | Listone giocatori con quotazioni |
-| [SOS Fanta](https://www.sosfanta.com) | Guide asta, formazioni tipo, rigoristi |
-| [football-data.co.uk](https://www.football-data.co.uk) | Risultati e quote storiche |
+| [fantacalcio.it](https://www.fantacalcio.it) | Quotazioni, ruoli Mantra, fantamedie, statistiche 6 stagioni, profili giocatori |
+| [SOS Fanta](https://www.sosfanta.com) | Guide asta, formazioni tipo, rigoristi, fasce di prezzo |
 
 ## License
 
