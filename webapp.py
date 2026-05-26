@@ -5,6 +5,29 @@ from src.valuation import load_db, valuate_player, get_top_players, search_playe
 from src.league_roster import load_league_data
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+
+# Auto-refresh data on startup (if older than 24h)
+print("Controllo dati...")
+from src.quotazioni import scrape_quotazioni
+from src.fantacalcio import scrape_all_seasons
+from pathlib import Path
+import time
+
+quot_file = Path("data/quotazioni_fantacalcio.csv")
+stats_file = Path("data/fantacalcio/all_seasons.csv")
+stale = lambda f: not f.exists() or (time.time() - f.stat().st_mtime > 86400)
+
+try:
+    if stale(quot_file):
+        print("  Aggiornamento quotazioni da fantacalcio.it...")
+        scrape_quotazioni()
+    if stale(stats_file):
+        print("  Aggiornamento statistiche da fantacalcio.it...")
+        scrape_all_seasons()
+    print("  ✓ Dati aggiornati")
+except Exception as e:
+    print(f"  ⚠️ Errore: {e} (uso dati esistenti)")
+
 db = load_db()
 
 # Load SOS Fanta data
@@ -18,10 +41,9 @@ except Exception:
 league_teams, market_prices = load_league_data()
 print(f"Loaded: {len(league_teams)} fantasy teams, {len(market_prices)} market prices")
 
-# Get all Serie A squads from listone (full names)
-from src.listone import load_listone
-_listone = load_listone()
-squads = sorted(_listone["squadra"].unique().tolist())
+# Get all Serie A squads
+SQUAD_NAMES = {"ATA":"Atalanta","BOL":"Bologna","CAG":"Cagliari","COM":"Como","CRE":"Cremonese","FIO":"Fiorentina","GEN":"Genoa","INT":"Inter","JUV":"Juventus","LAZ":"Lazio","LEC":"Lecce","MIL":"Milan","NAP":"Napoli","PAR":"Parma","PIS":"Pisa","ROM":"Roma","SAS":"Sassuolo","TOR":"Torino","UDI":"Udinese","VER":"Verona"}
+squads = sorted(SQUAD_NAMES.values())
 
 
 @app.route("/")
@@ -47,6 +69,105 @@ def api_player(name):
     if not val:
         return jsonify({"error": "Giocatore non trovato"}), 404
     return jsonify(val)
+
+
+@app.route("/api/player_profile/<name>")
+def api_player_profile(name):
+    """Scrape detailed profile from fantacalcio.it (FVM, MV, rigori, pro/contro)."""
+    import requests as req
+    from bs4 import BeautifulSoup
+
+    # Find player link from quotazioni page
+    from src.quotazioni import load_quotazioni
+    quot = load_quotazioni()
+    # Normalize search: strip accents, apostrophes, asterisks
+    from unicodedata import normalize as _n, category as _c
+    def _clean(s):
+        s = s.replace("'","").replace("'","").replace("*","")
+        return ''.join(c for c in _n('NFD', s.lower()) if _c(c) != 'Mn')
+    search = _clean(name)
+    player = quot[quot["nome"].apply(lambda x: search in _clean(x))]
+    if player.empty:
+        return jsonify({"error": "Non trovato"}), 404
+
+    # Build profile URL
+    p_name = player.iloc[0]["nome"].lower().replace(" ", "-").replace("'", "").replace("*", "")
+    p_squad = player.iloc[0]["squadra"].lower()
+    squad_map = {"ata":"atalanta","bol":"bologna","cag":"cagliari","com":"como","cre":"cremonese","fio":"fiorentina","gen":"genoa","int":"inter","juv":"juventus","laz":"lazio","lec":"lecce","mil":"milan","nap":"napoli","par":"parma","pis":"pisa","rom":"roma","sas":"sassuolo","tor":"torino","udi":"udinese","ver":"verona"}
+    squad_full = squad_map.get(p_squad, p_squad)
+
+    # Try to find the actual link from the quotazioni page
+    try:
+        r = req.get(f"https://www.fantacalcio.it/quotazioni-fantacalcio", timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(r.text, "html.parser")
+        link = None
+        for a in soup.find_all("a", class_="player-name", href=True):
+            if search in _clean(a.get_text(strip=True)):
+                link = a["href"]
+                break
+
+        if not link:
+            return jsonify({"error": "Link profilo non trovato"}), 404
+
+        r2 = req.get(link, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        soup2 = BeautifulSoup(r2.text, "html.parser")
+
+        result = {"nome": player.iloc[0]["nome"]}
+
+        # Stats box
+        stats_div = soup2.find("div", class_="player-stats")
+        if stats_div:
+            text = stats_div.get_text(" ", strip=True)
+            result["stats_raw"] = text
+
+        # Tables: gol casa/trasferta, rigori, ammonizioni
+        tables = soup2.find_all("table")
+        for t in tables:
+            for row in t.find_all("tr"):
+                ths = row.find_all("th")
+                tds = row.find_all("td")
+                if ths and tds:
+                    key = ths[0].get_text(strip=True)
+                    val_text = tds[0].get_text(strip=True)
+                    if "casa/trasferta" in key.lower():
+                        result["gol_casa_trasferta"] = val_text
+                    elif "rigori" in key.lower():
+                        result["rigori"] = val_text
+                    elif "ammonizioni" in key.lower():
+                        result["ammonizioni"] = val_text
+                    elif "partite" in key.lower():
+                        result["partite"] = val_text
+
+        # Description
+        desc = soup2.find("div", class_="description")
+        if desc:
+            result["descrizione"] = desc.get_text(strip=True)[:300]
+
+        # Pro/Contro
+        for li in soup2.find_all("li", class_="bullist"):
+            text = li.get_text(strip=True)
+            if text.startswith("PRO"):
+                result["pro"] = text[4:].strip()
+            elif text.startswith("CONTRO"):
+                result["contro"] = text[7:].strip()
+
+        # SOS Fanta description (from guida asta)
+        surname = _clean(name.split()[0])
+        for page_key in ["guida_asta_att", "guida_asta_cen", "guida_asta_dif", "guida_asta_por"]:
+            page_content = sosfanta.get(page_key, {}).get("content", "")
+            for line in page_content.split("\n"):
+                if len(line) > 80 and " - " not in line[:30]:
+                    line_start = _clean(line[:40])
+                    if surname in line_start:
+                        result["sosfanta_desc"] = line[:400]
+                        break
+            if "sosfanta_desc" in result:
+                break
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/top")
@@ -92,15 +213,26 @@ def api_player_tags():
     # Build lookup
     listone_entries = []
     surname_count = {}
+    from unicodedata import normalize as _nrm, category as _cat
+    def _norm_name(s):
+        s = s.replace('ı','i').replace('ş','s').replace('ç','c').replace('ğ','g').replace('ø','o').replace('*','')
+        s = ''.join(c for c in _nrm('NFD', s.lower()) if _cat(c) != 'Mn')
+        return s.rstrip("''\u2019'").replace("'","")
     for _, row in listone.iterrows():
-        parts = row["nome"].split()
-        surname = parts[0].lower() if parts else ""
-        firstname = parts[1].lower() if len(parts) >= 2 else ""
+        parts = row["nome"].replace("*","").split()
+        surname = _norm_name(parts[0]) if parts else ""
+        firstname = _norm_name(parts[1]) if len(parts) >= 2 else ""
         surname_count[surname] = surname_count.get(surname, 0) + 1
         listone_entries.append({"surname": surname, "firstname": firstname})
 
     def match_name(raw_name):
         """Match SOS Fanta name to listone surname. Returns unique key."""
+        from unicodedata import normalize, category
+        def _norm(s):
+            s = s.replace('ı','i').replace('ş','s').replace('ç','c').replace('ğ','g').replace('ø','o')
+            s = ''.join(c for c in normalize('NFD', s.lower()) if category(c) != 'Mn')
+            return s.rstrip("''\u2019'*.,;:").replace("'","").replace("*","")
+
         raw = raw_name.strip().rstrip(".,;:")
         parts = raw.split()
         if not parts:
@@ -109,7 +241,7 @@ def api_player_tags():
         # "M. Thuram" -> initial + surname
         if len(parts) == 2 and len(parts[0]) <= 2 and parts[0].endswith("."):
             initial = parts[0][0].lower()
-            surname = parts[1].lower()
+            surname = _norm(parts[1])
             if len(surname) < 3:
                 return None
             if surname_count.get(surname, 0) > 1:
@@ -118,23 +250,23 @@ def api_player_tags():
                         return surname + "_" + initial
             return surname
 
-        # "E. Ferguson" style with initial
+        # "E. Ferguson" style
         if len(parts) == 2 and len(parts[0]) == 2 and parts[0][1] == '.':
             initial = parts[0][0].lower()
-            surname = parts[1].lower()
+            surname = _norm(parts[1])
             if len(surname) < 3:
                 return None
             if surname_count.get(surname, 0) > 1:
                 return surname + "_" + initial
             return surname
 
-        # Single word - must be at least 3 chars
-        word = parts[-1].lower()
+        # Single word
+        word = _norm(parts[-1])
         if len(word) < 3:
             return None
-        # Try as surname (unique only)
+        # Try as surname
         matches = [e for e in listone_entries if e["surname"] == word]
-        if len(matches) == 1:
+        if matches:
             return word
         # Try as firstname -> return "surname_firstinitial" for uniqueness
         for e in listone_entries:
@@ -151,8 +283,12 @@ def api_player_tags():
         for line in content.split("\n"):
             # Match lines like "TOP - Name1, Name2, Name3"
             for t in TIERS:
-                if line.startswith(t) and " - " in line:
-                    names_part = line.split(" - ", 1)[1]
+                if line.startswith(t) and (" - " in line or " -" in line):
+                    # Split on " - " or " -" (some lines miss the space after dash)
+                    if " - " in line:
+                        names_part = line.split(" - ", 1)[1]
+                    else:
+                        names_part = line.split(" -", 1)[1]
                     for name in names_part.split(","):
                         key = match_name(name)
                         if key and key not in tags:
@@ -197,7 +333,7 @@ def api_svincolati():
     def _simplify(s):
         s = s.replace('ı', 'i').replace('İ', 'i').replace('ş', 's').replace('ç', 'c').replace('ğ', 'g').replace('ø', 'o').replace('ü', 'u').replace('ö', 'o')
         s = ''.join(c for c in normalize('NFD', s.lower()) if category(c) != 'Mn')
-        return s.rstrip("''\u2019'").replace("'", "").replace("\u2019", "").replace("'", "")
+        return s.rstrip("''\u2019'*").replace("'", "").replace("\u2019", "").replace("'", "").replace("*", "")
 
     # Load name mapping file if exists
     mapping = {}
@@ -210,7 +346,7 @@ def api_svincolati():
                     mapping[row["listone_nome"].lower()] = row["db_nome"]
 
     # Precompute DB lookup by simplified surname (highest FM wins for duplicates)
-    db_sorted = db.sort_values(["stagione", "fantamedia"], ascending=[False, False])
+    db_sorted = db.sort_values("fantamedia", ascending=False)
     db_lookup = {}
     db_lookup_short = {}
     db_dupes = {}  # surname -> [all matching rows]
@@ -231,8 +367,11 @@ def api_svincolati():
     for _, row in listone.iterrows():
         if role and row["ruolo"] != role:
             continue
-        if squadra and row["squadra"].lower() != squadra.lower():
-            continue
+        if squadra:
+            # Map full name to abbreviation for comparison
+            sq_abbr = next((k for k,v in SQUAD_NAMES.items() if v.lower()==squadra.lower()), squadra)
+            if row["squadra"].lower() != squadra.lower() and row["squadra"].upper() != sq_abbr.upper():
+                continue
         if q and q not in row["nome"].lower():
             continue
 
@@ -257,6 +396,14 @@ def api_svincolati():
             mantra = matched.get("ruolo_mantra", "")
             fm = matched.get("fantamedia", 0)
 
+        # Estimate FM from quotazione for new players
+        import math
+        is_nuovo = bool(fm == 0)
+        fm_stimata = False
+        if is_nuovo and row["quotazione"] >= 3:
+            fm = round(0.28 * math.log(row["quotazione"] + 1) + 5.56, 2)
+            fm_stimata = True
+
         result.append({
             "nome": row["nome"],
             "ruolo": row["ruolo"],
@@ -264,7 +411,8 @@ def api_svincolati():
             "squadra": row["squadra"],
             "quotazione": int(row["quotazione"]),
             "fm": round(fm, 2),
-            "nuovo": bool(fm == 0),
+            "nuovo": is_nuovo,
+            "fm_stimata": fm_stimata,
         })
 
     return jsonify(sorted(result, key=lambda x: x["quotazione"], reverse=True))

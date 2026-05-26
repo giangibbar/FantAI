@@ -57,12 +57,20 @@ def scrape_listone() -> pd.DataFrame:
 
 
 def load_listone() -> pd.DataFrame:
-    """Load listone (scrape if not exists, or load from uploaded CSV)."""
-    # Check for uploaded file first
+    """Load listone (prefer quotazioni from fantacalcio.it, fallback to scraped)."""
+    # Prefer the full quotazioni file (has Mantra roles for all)
+    quot_path = DATA_DIR / "quotazioni_fantacalcio.csv"
+    if quot_path.exists():
+        df = pd.read_csv(quot_path)
+        # Only Serie A for the listone
+        df = df[df["fonte"] == "serie_a"].copy()
+        df = df.rename(columns={"quotazione_attuale": "quotazione"})
+        return df[["nome", "ruolo", "ruolo_mantra", "squadra", "quotazione"]]
+
+    # Fallback to old listone
     for f in sorted(DATA_DIR.glob("listone_*.csv"), reverse=True):
         return pd.read_csv(f)
 
-    # Scrape
     return scrape_listone()
 
 

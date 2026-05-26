@@ -10,7 +10,7 @@ from rich.progress import track
 console = Console()
 
 BASE_URL = "https://www.fantacalcio.it/statistiche-serie-a/{season}/fantamedia"
-SEASONS = ["2024-25", "2023-24", "2022-23", "2021-22", "2020-21"]
+SEASONS = ["2025-26", "2024-25", "2023-24", "2022-23", "2021-22", "2020-21"]
 DATA_DIR = Path(__file__).parent.parent / "data" / "fantacalcio"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
