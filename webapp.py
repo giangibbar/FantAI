@@ -392,9 +392,11 @@ def api_svincolati():
             matched = db_lookup_short.get(surname[:6])
         mantra = ""
         fm = 0
+        presenze = 0
         if matched is not None:
             mantra = matched.get("ruolo_mantra", "")
             fm = matched.get("fantamedia", 0)
+            presenze = int(matched.get("presenze", 0))
 
         # Estimate FM from quotazione for new players
         import math
@@ -411,6 +413,7 @@ def api_svincolati():
             "squadra": row["squadra"],
             "quotazione": int(row["quotazione"]),
             "fm": round(fm, 2),
+            "presenze": presenze,
             "nuovo": is_nuovo,
             "fm_stimata": fm_stimata,
         })
