@@ -1,0 +1,196 @@
+{
+  "team": [
+    {
+      "nome": "Douvikas",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "COM",
+      "prezzo": 3,
+      "fm_proiettata": 7.38
+    },
+    {
+      "nome": "Dimarco",
+      "ruolo": "D",
+      "ruolo_mantra": "E",
+      "squadra": "INT",
+      "prezzo": 6,
+      "fm_proiettata": 7.64
+    },
+    {
+      "nome": "Yildiz",
+      "ruolo": "A",
+      "ruolo_mantra": "A",
+      "squadra": "JUV",
+      "prezzo": 7,
+      "fm_proiettata": 7.3
+    },
+    {
+      "nome": "Berardi",
+      "ruolo": "A",
+      "ruolo_mantra": "A",
+      "squadra": "SAS",
+      "prezzo": 9,
+      "fm_proiettata": 8.37
+    },
+    {
+      "nome": "Malen",
+      "ruolo": "A",
+      "ruolo_mantra": "A",
+      "squadra": "ROM",
+      "prezzo": 7,
+      "fm_proiettata": 8.97
+    },
+    {
+      "nome": "Calhanoglu",
+      "ruolo": "C",
+      "ruolo_mantra": "M;C",
+      "squadra": "INT",
+      "prezzo": 7,
+      "fm_proiettata": 7.7
+    },
+    {
+      "nome": "Pellegrino M.",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "PAR",
+      "prezzo": 7,
+      "fm_proiettata": 6.86
+    },
+    {
+      "nome": "Spinazzola",
+      "ruolo": "D",
+      "ruolo_mantra": "Ds;E",
+      "squadra": "NAP",
+      "prezzo": 8,
+      "fm_proiettata": 6.55
+    },
+    {
+      "nome": "Isaksen",
+      "ruolo": "C",
+      "ruolo_mantra": "W;A",
+      "squadra": "LAZ",
+      "prezzo": 6,
+      "fm_proiettata": 6.63
+    },
+    {
+      "nome": "McTominay",
+      "ruolo": "C",
+      "ruolo_mantra": "M;C",
+      "squadra": "NAP",
+      "prezzo": 7,
+      "fm_proiettata": 7.66
+    },
+    {
+      "nome": "Paz N.",
+      "ruolo": "C",
+      "ruolo_mantra": "T;A",
+      "squadra": "COM",
+      "prezzo": 8,
+      "fm_proiettata": 7.3
+    },
+    {
+      "nome": "Pulisic",
+      "ruolo": "C",
+      "ruolo_mantra": "T;A",
+      "squadra": "MIL",
+      "prezzo": 8,
+      "fm_proiettata": 7.5
+    },
+    {
+      "nome": "Zielinski",
+      "ruolo": "C",
+      "ruolo_mantra": "C;T",
+      "squadra": "INT",
+      "prezzo": 9,
+      "fm_proiettata": 7.28
+    },
+    {
+      "nome": "Scamacca",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "ATA",
+      "prezzo": 8,
+      "fm_proiettata": 7.89
+    },
+    {
+      "nome": "Bonazzoli",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "CRE",
+      "prezzo": 8,
+      "fm_proiettata": 7.1
+    },
+    {
+      "nome": "Krstovic",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "ATA",
+      "prezzo": 7,
+      "fm_proiettata": 7.19
+    },
+    {
+      "nome": "Esposito F.P.",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "INT",
+      "prezzo": 7,
+      "fm_proiettata": 7.02
+    },
+    {
+      "nome": "Simeone",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "TOR",
+      "prezzo": 6,
+      "fm_proiettata": 7.54
+    },
+    {
+      "nome": "Baturina",
+      "ruolo": "C",
+      "ruolo_mantra": "T",
+      "squadra": "COM",
+      "prezzo": 4,
+      "fm_proiettata": 7.14
+    },
+    {
+      "nome": "Davis K.",
+      "ruolo": "A",
+      "ruolo_mantra": "Pc",
+      "squadra": "UDI",
+      "prezzo": 4,
+      "fm_proiettata": 7.37
+    }
+  ],
+  "budget": 364,
+  "opps": [
+    {
+      "name": "ii",
+      "budget": 500,
+      "players": [
+        {
+          "nome": "Laurientè",
+          "ruolo_mantra": "A",
+          "squadra": "SAS",
+          "costo": 7
+        },
+        {
+          "nome": "Soulè",
+          "ruolo_mantra": "W;A",
+          "squadra": "ROM",
+          "costo": 4
+        },
+        {
+          "nome": "Ndoye*",
+          "ruolo_mantra": "W",
+          "squadra": "BOL",
+          "costo": 5
+        }
+      ]
+    }
+  ],
+  "favorites": [],
+  "notes": {},
+  "shoppingList": [],
+  "generalNotes": "",
+  "auctionLog": []
+}

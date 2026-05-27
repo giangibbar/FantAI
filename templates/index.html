@@ -63,7 +63,47 @@
         .upload input[type=file]{display:none}
         .upload label{cursor:pointer;color:#4fc3f7;font-size:.85em}
         #plist>div:hover{background:#1a2a3a !important}
-        #stats-content{white-space:pre-wrap;font-size:.95em;line-height:1.8;max-height:65vh;overflow-y:auto;padding:14px}
+        .opp-players{display:flex}
+        .opp-toggle{display:none}
+        @media(max-width:500px){
+            #sec-asta{overflow-y:auto !important;overflow-x:hidden !important}
+            #rosa-body{padding:0 4px}
+            #rosa-body>div:first-child{display:grid !important;grid-template-columns:repeat(6,1fr);gap:4px}
+            #rosa-body>div:first-child .btn{padding:10px !important;font-size:.9em !important;margin:0 !important;text-align:center;grid-column:span 2}
+            #rosa-body>div:first-child .btn[onclick*="suggestBest"],#rosa-body>div:first-child .btn[onclick*="showSmart"]{grid-column:span 3}
+            #t-sum{display:grid !important;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:4px;margin:8px 0 !important}
+            #t-sum .role{padding:4px 8px !important;font-size:.9em !important;text-align:center;display:block}
+            #available-count{font-size:.9em !important;padding:6px;background:#0f1923;border-radius:6px;text-align:center;margin:6px 0 !important}
+            #missing-roles{font-size:.9em !important;padding:6px;background:#0f1923;border-radius:6px;text-align:center;margin:6px 0 !important}
+            #avg-prices{font-size:.85em !important;text-align:center;margin:4px 0 !important}
+            #moduli{justify-content:center;gap:5px !important;margin:8px 0 !important}
+            .mod{padding:7px 12px !important;font-size:.9em !important}
+            #t-start,#t-bench{display:flex;flex-wrap:wrap;gap:4px}
+            #t-start .tp,#t-bench .tp{font-size:.85em;padding:4px 8px}
+            #modulo-detail{text-align:center}
+            #plist>div{flex-wrap:wrap !important;padding:10px 8px !important;gap:4px !important}
+            #plist>div select{width:100% !important;margin-top:4px}
+            #plist>div input[type=number]{width:60px !important}
+            #plist>div button{flex:1}
+            .panel h3{font-size:1em}
+            .row{display:grid !important;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px !important}
+            .row.lo-prendo-row,.row.sq-row{display:flex !important}
+            .row>#search{grid-column:1/-1;font-size:16px !important;padding:10px !important}
+            .row>#f-squad,.row>#f-tier{grid-column:span 2;font-size:14px !important;padding:10px !important}
+            .row>select{font-size:14px !important;padding:10px !important;max-width:none !important}
+            .row>button{font-size:14px !important;padding:10px !important}
+            #moduli{gap:4px}
+            .mod{padding:6px 10px !important;font-size:.9em !important}
+            #modulo-detail img{max-height:200px !important}
+            #modulo-detail{min-width:auto !important;width:100% !important}
+            #st-tabs{flex-wrap:wrap !important}
+            #st-tabs .tab{padding:8px 10px !important;font-size:.85em !important}
+            #st-sq{width:100% !important;font-size:14px !important;padding:10px !important}
+            .opp-players{display:none}
+            .opp-players.show{display:flex}
+            .opp-toggle{display:inline-block !important}
+        }
+        #stats-content{white-space:pre-wrap;font-size:.95em;line-height:1.8;overflow-y:auto;padding:14px;flex:1}
         .player-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-bottom:1px solid #1a2a3a;cursor:pointer}
         .player-row:hover{background:#1a2a3a}
         .player-row .left{display:flex;align-items:center;gap:6px}
@@ -90,43 +130,45 @@
 
         <div class="panel panel-hl">
             <h3>🎯 Lo prendo?</h3>
-            <div class="row" style="position:relative">
-                <input type="text" id="a-name" placeholder="Giocatore..." autocomplete="off" oninput="autocompleteAsta(this.value)">
-                <input type="number" id="a-price" placeholder="€" style="max-width:65px">
-                <button onclick="askBuy()">Valuta</button>
+            <div class="row lo-prendo-row" style="position:relative">
+                <input type="text" id="a-name" placeholder="Giocatore..." autocomplete="off" oninput="autocompleteAsta(this.value)" style="flex:70">
+                <input type="number" id="a-price" placeholder="€" style="flex:23;max-width:none">
+                <button onclick="askBuy()" style="flex:7;padding:8px">🔍</button>
                 <div id="a-autocomplete" class="ac" style="display:none"></div>
             </div>
             <div id="verdict"></div>
         </div>
         <div class="panel">
-            <h3>📋 Rosa <span id="bud" style="float:right;font-size:.85em"></span></h3>
-            <div style="display:flex;gap:6px;margin-bottom:6px">
-                <button class="btn btn-sm btn-o" onclick="undoLast()">↩️ Undo</button>
-                <button class="btn btn-sm btn-o" onclick="showSpendingChart()">📈 Spese</button>
-                <button class="btn btn-sm btn-o" onclick="toggleNotes()">📝 Note</button>
+            <h3 style="cursor:pointer;font-size:1.1em" onclick="document.getElementById('rosa-body').style.display=document.getElementById('rosa-body').style.display==='none'?'block':'none'">📋 Rosa ▾ <span id="bud" style="float:right;font-size:.85em"></span></h3>
+            <div id="rosa-body" style="display:none">
+            <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                <button class="btn btn-o" onclick="undoLast()">↩️ Undo</button>
+                <button class="btn btn-o" onclick="showSpendingChart()">📈 Spese</button>
+                <button class="btn btn-o" onclick="toggleNotes()">📝 Note</button>
+                <button class="btn btn-o" onclick="suggestBestXI()">💡 Top 11</button>
+                <button class="btn btn-o" onclick="showSmartSuggestions()">🧩 Chi mi manca</button>
             </div>
             <div id="general-notes" style="display:none;margin-bottom:8px">
-                <textarea id="notes-area" style="width:100%;height:80px;padding:8px;border-radius:6px;border:1px solid #2a3a4a;background:#0f1923;color:#fff;font-size:.85em;resize:vertical" placeholder="Appunti generali per l'asta..." oninput="saveGeneralNotes()"></textarea>
+                <textarea id="notes-area" style="width:100%;height:80px;padding:8px;border-radius:6px;border:1px solid #2a3a4a;background:#0f1923;color:#fff;font-size:.9em;resize:vertical" placeholder="Appunti generali per l'asta..." oninput="saveGeneralNotes()"></textarea>
             </div>
-            <div id="t-sum" style="display:flex;gap:4px;flex-wrap:wrap;margin:3px 0"></div>
-            <div id="available-count" style="font-size:.75em;color:#888;margin:2px 0"></div>
-            <div id="missing-roles" style="font-size:.8em;color:#ff9800;margin:4px 0"></div>
-            <div id="avg-prices" style="font-size:.75em;color:#888;margin:2px 0"></div>
-            <div class="sec-t">Moduli Mantra (clicca per dettagli)</div>
+            <div id="t-sum" style="display:flex;gap:5px;flex-wrap:wrap;margin:4px 0;font-size:1.1em"></div>
+            <div id="available-count" style="font-size:.95em;color:#888;margin:4px 0"></div>
+            <div id="missing-roles" style="font-size:1em;color:#ff9800;margin:5px 0"></div>
+            <div id="avg-prices" style="font-size:.95em;color:#888;margin:4px 0"></div>
+            <div class="sec-t" style="font-size:.8em">Moduli Mantra (clicca per dettagli)</div>
             <div id="moduli" style="display:flex;flex-wrap:wrap;gap:3px;margin:4px 0"></div>
-            <button class="btn btn-sm btn-o" onclick="suggestBestXI()" style="margin:4px 0">💡 Top 11</button>
-            <button class="btn btn-sm btn-o" onclick="showSmartSuggestions()" style="margin:4px 0">🧩 Chi mi manca</button>
-            <div style="display:flex;gap:24px;margin-top:6px;align-items:flex-start">
-                <div id="modulo-detail" style="font-size:.75em;color:#888;min-width:200px"></div>
-                <div style="flex:1;min-width:120px">
-                    <div class="sec-t">Titolari (11)</div>
-                    <div id="t-start"></div>
+            <div style="display:flex;gap:24px;margin-top:6px;align-items:flex-start;flex-wrap:wrap">
+                <div id="modulo-detail" style="font-size:.85em;color:#888;min-width:200px"></div>
+                <div style="flex:1;min-width:150px">
+                    <div class="sec-t" style="font-size:.85em;color:#4fc3f7">⚽ Titolari</div>
+                    <div id="t-start" style="font-size:.9em;margin-top:4px"></div>
                 </div>
-                <div style="flex:1;min-width:120px">
-                    <div class="sec-t">Panchina</div>
-                    <div id="t-bench"></div>
+                <div style="flex:1;min-width:150px">
+                    <div class="sec-t" style="font-size:.85em;color:#888">🪑 Panchina</div>
+                    <div id="t-bench" style="font-size:.9em;margin-top:4px"></div>
                 </div>
             </div>
+            </div><!-- end rosa-body -->
         </div>
         <!-- Player list -->
         <div class="row" style="margin-top:8px">
@@ -178,7 +220,7 @@
     </div>
 
     <!-- STATS -->
-    <div id="sec-stats" style="display:none">
+    <div id="sec-stats" style="display:none;flex-direction:column;flex:1;overflow:hidden">
         <div class="tabs" id="st-tabs">
             <button class="tab active" onclick="loadSt('guida_asta_por',this)">🎯 Por</button>
             <button class="tab" onclick="loadSt('guida_asta_dif',this)">🎯 Dif</button>
@@ -191,7 +233,7 @@
             <button class="tab" onclick="loadSt('chi_prendere_centrocampisti',this)">⚙️+</button>
             <button class="tab" onclick="loadSt('chi_prendere_attaccanti',this)">⚡+</button>
         </div>
-        <div class="row"><select id="st-sq" onchange="filterSt()" style="width:100%"><option value="">Tutte le squadre</option></select></div>
+        <div class="row sq-row"><select id="st-sq" onchange="filterSt()" style="width:100%;padding:10px;font-size:14px"><option value="">Tutte le squadre</option></select></div>
         <div id="stats-content" class="panel"></div>
     </div>
 
@@ -199,10 +241,10 @@
     <div id="sec-opp" style="display:none">
         <div class="panel panel-hl">
             <h3>👥 Avversari</h3>
-            <div class="row">
-                <input type="text" id="o-name" placeholder="Nome squadra">
-                <input type="number" id="o-bud" value="500" style="max-width:65px">
-                <button onclick="addOpp()">+</button>
+            <div class="row lo-prendo-row">
+                <input type="text" id="o-name" placeholder="Nome squadra" style="flex:70">
+                <input type="number" id="o-bud" value="500" style="flex:23;max-width:none">
+                <button onclick="addOpp()" style="flex:7;padding:8px">+</button>
             </div>
         </div>
         <div id="opp-list"></div>
@@ -215,7 +257,7 @@
 
             <div class="sec-t" style="margin-top:16px">🔗 Link SOS Fanta</div>
             <p style="font-size:.8em;color:#888;margin:4px 0">Aggiorna i link quando escono le guide della nuova stagione</p>
-            <div class="row">
+            <div class="row ">
                 <select id="set-link-key" style="flex:1">
                     <option value="guida_asta_por">Guida Asta Portieri</option>
                     <option value="guida_asta_dif">Guida Asta Difensori</option>
@@ -226,14 +268,14 @@
                     <option value="gerarchie_portieri">Gerarchie Portieri</option>
                 </select>
             </div>
-            <div class="row">
+            <div class="row ">
                 <input type="text" id="set-link-url" placeholder="Nuovo URL...">
                 <button onclick="saveLink()">Salva</button>
             </div>
             <button class="btn btn-sm btn-o" onclick="doRefresh()" style="margin-top:6px">🔄 Ri-scrapea tutti i link</button>
 
             <div class="sec-t" style="margin-top:16px">🗑️ Reset dati</div>
-            <div class="row">
+            <div class="row ">
                 <button class="btn btn-sm" style="background:#f44336" onclick="if(confirm('Cancellare tutta la rosa e gli avversari?')){localStorage.clear();location.reload();}">Reset completo</button>
             </div>
         </div>
@@ -241,10 +283,10 @@
 </div>
         <div class="panel panel-hl">
             <h3>👥 Avversari</h3>
-            <div class="row">
-                <input type="text" id="o-name" placeholder="Nome squadra">
-                <input type="number" id="o-bud" value="500" style="max-width:65px">
-                <button onclick="addOpp()">+</button>
+            <div class="row lo-prendo-row">
+                <input type="text" id="o-name" placeholder="Nome squadra" style="flex:70">
+                <input type="number" id="o-bud" value="500" style="flex:23;max-width:none">
+                <button onclick="addOpp()" style="flex:7;padding:8px">+</button>
             </div>
         </div>
         <div id="opp-list"></div>
@@ -259,6 +301,38 @@ let favorites=JSON.parse(localStorage.getItem('ab_favs')||'[]');
 let notes=JSON.parse(localStorage.getItem('ab_notes')||'{}');
 let shoppingList=JSON.parse(localStorage.getItem('ab_shop')||'[]');
 let undoStack=[];
+
+// --- Server persistence ---
+let _syncTimer=null;
+function syncToServer(){
+    clearTimeout(_syncTimer);
+    _syncTimer=setTimeout(()=>{
+        const data={team:myTeam,budget,opps,favorites,notes,shoppingList,
+            generalNotes:document.getElementById('notes-area')?document.getElementById('notes-area').value:'',
+            auctionLog:JSON.parse(localStorage.getItem('ab_log')||'[]')};
+        fetch('/api/userdata',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{});
+    },1000);
+}
+async function loadFromServer(){
+    try{
+        const r=await fetch('/api/userdata');
+        const d=await r.json();
+        if(d&&d.team){
+            myTeam=d.team;budget=d.budget||500;opps=d.opps||[];favorites=d.favorites||[];
+            notes=d.notes||{};shoppingList=d.shoppingList||[];
+            localStorage.setItem('ab_team',JSON.stringify(myTeam));
+            localStorage.setItem('ab_budget',budget.toString());
+            localStorage.setItem('ab_opps',JSON.stringify(opps));
+            localStorage.setItem('ab_favs',JSON.stringify(favorites));
+            localStorage.setItem('ab_notes',JSON.stringify(notes));
+            localStorage.setItem('ab_shop',JSON.stringify(shoppingList));
+            if(d.generalNotes)localStorage.setItem('ab_general_notes',d.generalNotes);
+            if(d.auctionLog)localStorage.setItem('ab_log',JSON.stringify(d.auctionLog));
+        }
+    }catch(e){}
+}
+// --- End server persistence ---
+
 let allPlayers=[];
 let playerTags={};
 function getTagsHtml(nome){
@@ -298,7 +372,7 @@ function showSec(s,el){
     el.classList.add('active');
     ['asta','stats','opp','settings'].forEach(id=>{
         const el=document.getElementById('sec-'+id);
-        if(id===s) el.style.display=id==='asta'?'flex':'block';
+        if(id===s) el.style.display=id==='asta'||id==='stats'?'flex':'block';
         else el.style.display='none';
     });
     if(s==='stats')loadSt('guida_asta_por',document.querySelector('#st-tabs .tab'));
@@ -346,18 +420,19 @@ function filterList(){
     else if(sort==='nome-asc')list.sort((a,b)=>a.nome.localeCompare(b.nome));
     else if(sort==='fm-desc')list.sort((a,b)=>(b.fm||0)-(a.fm||0));
     else if(sort==='value-desc')list.sort((a,b)=>((b.fm||0)/Math.max(b.quotazione,1))-((a.fm||0)/Math.max(a.quotazione,1)));
-    renderList(list);
+    renderList(list.slice(0,100));
 }
 
 function renderList(players){
     const oppOptions=opps.map((o,i)=>`<option value="${i}">${o.name}</option>`).join('');
-    document.getElementById('plist').innerHTML=players.map(p=>{
+    if(!players.length){document.getElementById('plist').innerHTML='<div style="padding:20px;text-align:center;color:#666">Nessun giocatore</div>';return;}
+    const parts=[];
+    for(const p of players){
         const safeName=p.nome.replace(/'/g,"\\'").replace(/"/g,'&quot;');
         const isFav=favorites.includes(p.nome);
         const val=p.fm&&p.quotazione?(p.fm/p.quotazione*10).toFixed(1):'';
         const note=notes[p.nome]||'';
-        return `
-        <div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #1a2a3a">
+        parts.push(`<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid #1a2a3a">
             <span style="cursor:pointer;font-size:1.1em" onclick="toggleFav('${safeName}')">${isFav?'⭐':'☆'}</span>
             <span class="role role-${p.ruolo_mantra.split(';')[0]}">${p.ruolo_mantra}</span>
             <span style="color:#666;font-size:.7em">${p.ruolo}</span>
@@ -370,8 +445,9 @@ function renderList(players){
             </select>
             <input type="number" class="assign-price" placeholder="€" style="width:100px;padding:6px;font-size:.85em;background:#0f1923;color:#fff;border:1px solid #2a3a4a;border-radius:5px">
             <button style="padding:6px 16px;border-radius:5px;border:none;background:#ff9800;color:#000;font-weight:bold;font-size:.85em;cursor:pointer" onclick="assignPlayer('${safeName}','${p.ruolo}','${p.ruolo_mantra}','${p.squadra}',${p.fm||0},this)">→</button>
-        </div>`;
-    }).join('')||'<div style="padding:20px;text-align:center;color:#666">Nessun giocatore</div>';
+        </div>`);
+    }
+    document.getElementById('plist').innerHTML=parts.join('');
 }
 
 async function showDetail(nome){
@@ -391,9 +467,8 @@ async function showDetail(nome){
                 <div style="color:#888;font-size:.85em">${p.squadra} · ${p.stagioni} stagioni${p.titolare?' · ✅ Titolare':''}${p.rigorista?' · ⚽ Rigorista':''}</div>
             </div>
             <div style="text-align:right">
-                <div style="font-size:1.4em;font-weight:bold;color:#4fc3f7">${p.prezzo_suggerito} cr</div>
-                <div style="font-size:.7em;color:#888">max ${p.prezzo_max}${p.prezzo_mercato?' · lega:'+p.prezzo_mercato:''}</div>
-                <div style="font-size:.7em;color:#4caf50">💰 Puoi spendere max: ${maxSpend}cr</div>
+                <div style="font-size:.9em;color:#888">Q.A: <b style="color:#4fc3f7">${p.qa||'-'}</b> · A.P: <b style="color:#ff9800">${p.ap||'-'}</b></div>
+                <div style="font-size:.7em;color:#888">max ${p.prezzo_max} · 💰 spendibile: ${maxSpend}cr</div>
             </div>
         </div>
         <div class="stats" style="margin-top:8px">
@@ -486,7 +561,8 @@ function assignPlayer(nome,ruolo,ruoloMantra,squadra,fm,btn){
     const row=btn?btn.parentElement:null;
     const sel=row?row.querySelector('.assign-sel'):null;
     const priceInput=row?row.querySelector('.assign-price'):null;
-    const price=priceInput?parseInt(priceInput.value)||1:1;
+    const price=priceInput?parseInt(priceInput.value)||0:0;
+    if(!price){alert('Inserisci il prezzo di acquisto!');if(priceInput)priceInput.focus();return;}
     const target=sel?sel.value:'me';
     if(target==='me'){
         myTeam.push({nome,ruolo,ruolo_mantra:ruoloMantra,squadra,prezzo:price,fm_proiettata:fm});
@@ -504,13 +580,15 @@ function assignPlayer(nome,ruolo,ruoloMantra,squadra,fm,btn){
 
 // Team
 function removeFromTeam(i){budget+=myTeam[i].prezzo;myTeam.splice(i,1);saveTeam();renderTeam();filterList();}
-function saveTeam(){localStorage.setItem('ab_team',JSON.stringify(myTeam));localStorage.setItem('ab_budget',budget.toString());}
+function saveTeam(){localStorage.setItem('ab_team',JSON.stringify(myTeam));localStorage.setItem('ab_budget',budget.toString());syncToServer();}
 
 function renderTeam(){
-    document.getElementById('bud').textContent=`${budget}cr | ${myTeam.length}/28`;
+    document.getElementById('bud').innerHTML=`<span style="font-size:1.2em;color:#4fc3f7">${budget}cr</span> · ${myTeam.length}/28`;
     const counts={};
     myTeam.forEach(p=>{(p.ruolo_mantra||p.ruolo).split(';').forEach(r=>{counts[r]=(counts[r]||0)+1;});});
-    document.getElementById('t-sum').innerHTML=Object.entries(counts).map(([r,n])=>`<span class="role role-${r}">${r}:${n}</span>`).join('');
+    const roleDisplayOrder=['Por','Dc','Dd','Ds','B','E','M','C','W','T','A','Pc'];
+    const sortedRoles=Object.entries(counts).sort((a,b)=>{const ai=roleDisplayOrder.indexOf(a[0]);const bi=roleDisplayOrder.indexOf(b[0]);return (ai<0?99:ai)-(bi<0?99:bi);});
+    document.getElementById('t-sum').innerHTML=sortedRoles.map(([r,n])=>`<span class="role role-${r.split(';')[0]}">${r}:${n}</span>`).join('');
 
     // Available count
     const taken=new Set([...myTeam.map(p=>p.nome.toLowerCase()),...opps.flatMap(o=>o.players.map(p=>p.nome.toLowerCase()))]);
@@ -584,11 +662,49 @@ function renderTeam(){
     }).join('');
 
     // Starters/bench
-    const por=[...myTeam.filter(p=>p.ruolo==='P')].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
-    const difs=[...myTeam.filter(p=>p.ruolo==='D')].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
-    const offs=[...myTeam.filter(p=>p.ruolo==='C'||p.ruolo==='A')].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
-    const starters=[...por.slice(0,1),...difs.slice(0,5),...offs.slice(0,5)];
-    const bench=[...por.slice(1),...difs.slice(5),...offs.slice(5)];
+    const roleOrder='Por,Dc,Dd,Ds,B,E,M,C,W,T,T;A,W;A,W;T;A,A,Pc';
+    const getRoleIdx=(p)=>{const r=(p.ruolo_mantra||p.ruolo);const i=roleOrder.indexOf(r);if(i>=0)return i;const first=r.split(';')[0];const j=roleOrder.indexOf(first);return j>=0?j:99;};
+    const sorted=[...myTeam].sort((a,b)=>getRoleIdx(a)-getRoleIdx(b));
+
+    // If a modulo is selected, assign starters based on that formation
+    const det=document.getElementById('modulo-detail');
+    const currentMod=det?det.dataset.current:'';
+    let starters=[], bench=[];
+
+    if(currentMod && MODULI[currentMod]){
+        const needed=[];
+        MODULI[currentMod].replace(/Por|Dc|Dd|Ds|E|M|C|W|T|Pc|A|B/g,r=>{needed.push(r);return r;});
+        const used=new Set();
+        // For each slot in the formation, find best matching player from my team
+        for(const role of needed){
+            const candidates=myTeam.filter(p=>{
+                if(used.has(p.nome))return false;
+                const mr=(p.ruolo_mantra||'').split(';');
+                if(role==='Por')return p.ruolo==='P';
+                if(['Dc','Dd','Ds'].includes(role))return mr.some(r=>['Dc','Dd','Ds','B'].includes(r))||p.ruolo==='D';
+                if(role==='E')return mr.includes('E')||mr.includes('B');
+                if(role==='M')return mr.includes('M')||mr.includes('C');
+                if(role==='C')return mr.includes('C')||mr.includes('M');
+                if(role==='W')return mr.includes('W')||mr.includes('A');
+                if(role==='T')return mr.includes('T')||mr.includes('C');
+                if(role==='Pc')return mr.includes('Pc')||p.ruolo==='A';
+                if(role==='A')return mr.includes('A')||mr.includes('W')||p.ruolo==='A';
+                return false;
+            }).sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
+            if(candidates.length){
+                starters.push(candidates[0]);
+                used.add(candidates[0].nome);
+            }
+        }
+        starters.sort((a,b)=>getRoleIdx(a)-getRoleIdx(b));
+        bench=sorted.filter(p=>!used.has(p.nome));
+    } else {
+        // No modulo selected: top 11 by FM
+        const byFm=[...myTeam].sort((a,b)=>(b.fm_proiettata||0)-(a.fm_proiettata||0));
+        starters=byFm.slice(0,Math.min(11,myTeam.length)).sort((a,b)=>getRoleIdx(a)-getRoleIdx(b));
+        const starterNames=new Set(starters.map(p=>p.nome));
+        bench=sorted.filter(p=>!starterNames.has(p.nome));
+    }
     const rp=(p)=>`<span class="tp"><span class="role role-${(p.ruolo_mantra||p.ruolo).split(';')[0]}">${p.ruolo_mantra||p.ruolo}</span>${p.nome} ${p.prezzo}cr<span class="x" onclick="removeFromTeam(${myTeam.indexOf(p)})">✕</span></span>`;
     document.getElementById('t-start').innerHTML=starters.map(rp).join('')||'<span style="color:#555">—</span>';
     document.getElementById('t-bench').innerHTML=bench.map(rp).join('')||'<span style="color:#555">—</span>';
@@ -618,6 +734,8 @@ function showModulo(m){
     } else {
         document.getElementById('missing-roles').innerHTML=`<span style="color:#4caf50">✅ Hai tutti i ruoli per il ${m}!</span>`;
     }
+    // Update starters/bench based on this modulo
+    renderTeam();
 }
 
 function suggestBestXI(){
@@ -645,7 +763,7 @@ function suggestBestXI(){
     const roleScarcity=needed.map(role=>{
         const count=available.filter(p=>{
             const mr=p.ruolo_mantra.split(';');
-            if(role==='Por')return p.ruolo==='Por';
+            if(role==='Por')return p.ruolo==='P';
             if(['Dc','Dd','Ds'].includes(role))return mr.some(r=>['Dc','Dd','Ds','B'].includes(r))||p.ruolo==='D';
             if(role==='E')return mr.includes('E')||mr.includes('B');
             if(role==='M')return mr.includes('M')||mr.includes('C');
@@ -664,7 +782,7 @@ function suggestBestXI(){
         const candidates=available.filter(p=>{
             if(used.has(p.nome))return false;
             const mr=p.ruolo_mantra.split(';');
-            if(role==='Por')return p.ruolo==='Por';
+            if(role==='Por')return p.ruolo==='P';
             if(['Dc','Dd','Ds'].includes(role))return mr.some(r=>['Dc','Dd','Ds','B'].includes(r))||p.ruolo==='D';
             if(role==='E')return mr.includes('E')||mr.includes('B');
             if(role==='M')return mr.includes('M')||mr.includes('C');
@@ -739,7 +857,12 @@ async function askBuy(){
     const d=await res.json();
     let cls=d.consiglio.includes('PRENDI')||d.consiglio.includes('AFFARE')?'v-ok':d.consiglio.includes('VALUTA')?'v-maybe':'v-no';
     let h=`<div class="verdict ${cls}"><b>${d.consiglio}</b><br><small>${d.motivo}</small>`;
-    if(d.giocatore)h+=`<br><small>FM:${d.giocatore.fm_proiettata} | ${d.giocatore.ruolo_mantra} | Vale:${d.giocatore.prezzo_suggerito} | Max:${d.giocatore.prezzo_max}</small><br><button class="btn btn-sm" onclick="assignPlayer('${d.giocatore.nome.replace(/'/g,"\\'")}','${d.giocatore.ruolo}','${d.giocatore.ruolo_mantra||d.giocatore.ruolo}','${d.giocatore.squadra}',${d.giocatore.fm_proiettata},null);document.getElementById('verdict').innerHTML=''">✅ Preso!</button>`;
+    if(d.giocatore){
+        h+=`<br><small>FM:${d.giocatore.fm_proiettata} | ${d.giocatore.ruolo_mantra} | Vale:${d.giocatore.prezzo_suggerito} | Max:${d.giocatore.prezzo_max}</small>`;
+        if(cls!=='v-no'){
+            h+=`<br><button class="btn btn-sm" style="background:#4caf50" onclick="assignPlayer('${d.giocatore.nome.replace(/'/g,"\\'")}','${d.giocatore.ruolo}','${d.giocatore.ruolo_mantra||d.giocatore.ruolo}','${d.giocatore.squadra}',${d.giocatore.fm_proiettata},null);document.getElementById('verdict').innerHTML=''">PRENDERE</button> <button class="btn btn-sm" style="background:#f44336" onclick="document.getElementById('verdict').innerHTML=''">NON PRENDERE</button>`;
+        }
+    }
     h+='</div>';
     document.getElementById('verdict').innerHTML=h;
 }
@@ -824,7 +947,7 @@ function addOpp(){
 }
 function removeOpp(i){opps.splice(i,1);saveOpps();renderOpps();filterList();}
 function removeOppP(oi,pi){opps[oi].players.splice(pi,1);saveOpps();renderOpps();filterList();}
-function saveOpps(){localStorage.setItem('ab_opps',JSON.stringify(opps));}
+function saveOpps(){localStorage.setItem('ab_opps',JSON.stringify(opps));syncToServer();}
 function renderOpps(){
     const spent=o=>o.players.reduce((s,p)=>s+p.costo,0);
     document.getElementById('opp-list').innerHTML=opps.map((o,oi)=>`
@@ -832,7 +955,8 @@ function renderOpps(){
             <div class="card-h"><div><div class="card-n">${o.name} <span style="cursor:pointer;color:#f44336;font-size:.7em" onclick="removeOpp(${oi})">✕</span></div>
             <div class="card-m">${o.players.length}/28 · Spesi:${spent(o)}/${o.budget} · Rim:${o.budget-spent(o)}</div></div>
             <div class="card-p">${o.budget-spent(o)}<small>rimasti</small></div></div>
-            <div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:2px">${o.players.map((p,pi)=>`<span class="tp"><span class="role role-${(p.ruolo_mantra||'C').split(';')[0]}">${p.ruolo_mantra||'?'}</span>${p.nome} ${p.costo}cr<span class="x" onclick="removeOppP(${oi},${pi})">✕</span></span>`).join('')}</div>
+            <button class="opp-toggle btn btn-sm" style="display:none;margin-top:4px" onclick="this.nextElementSibling.classList.toggle('show')">👁️ Mostra rosa</button>
+            <div class="opp-players" style="margin-top:5px;flex-wrap:wrap;gap:2px">${[...o.players].sort((a,b)=>{const order='Por,Dc,Dd,Ds,B,E,M,C,W,T,T;A,W;A,W;T;A,A,Pc';const ai=order.indexOf(a.ruolo_mantra||'');const bi=order.indexOf(b.ruolo_mantra||'');const af=ai>=0?ai:order.indexOf((a.ruolo_mantra||'Z').split(';')[0]);const bf=bi>=0?bi:order.indexOf((b.ruolo_mantra||'Z').split(';')[0]);return (af<0?99:af)-(bf<0?99:bf);}).map((p,pi)=>`<span class="tp"><span class="role role-${(p.ruolo_mantra||'C').split(';')[0]}">${p.ruolo_mantra||'?'}</span>${p.nome} ${p.costo}cr<span class="x" onclick="removeOppP(${oi},${opps[oi].players.indexOf(p)})">✕</span></span>`).join('')}</div>
         </div>`).join('');
 }
 
@@ -876,7 +1000,7 @@ function quickAssign(){
     const time=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     const target=who==='me'?'🏠 Io':opps[parseInt(who)]?.name||'?';
     auctionLog.push({time,nome,price,target});
-    localStorage.setItem('ab_log',JSON.stringify(auctionLog));
+    localStorage.setItem('ab_log',JSON.stringify(auctionLog));syncToServer();
     renderLog();
     // Reset
     input.value='';input.dataset.ruolo='';input.dataset.mantra='';input.dataset.squadra='';input.dataset.fm='';
@@ -926,7 +1050,7 @@ function showSmartSuggestions(){
         const count=missing.filter(r=>r===role).length;
         const candidates=available.filter(p=>{
             const mr=p.ruolo_mantra.split(';');
-            if(role==='Por')return p.ruolo==='Por';
+            if(role==='Por')return p.ruolo==='P';
             if(['Dc','Dd','Ds'].includes(role))return mr.some(r=>['Dc','Dd','Ds','B'].includes(r));
             if(role==='E')return mr.includes('E')||mr.includes('B');
             if(role==='M')return mr.includes('M')||mr.includes('C');
@@ -944,20 +1068,47 @@ function showSmartSuggestions(){
     panel.innerHTML=html;
 }
 
+// Sync state to server (for cross-device persistence)
+function syncToServer(){
+    fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        team:myTeam,budget,opps,favorites,notes,shoppingList,auctionLog,
+        generalNotes:document.getElementById('notes-area')?.value||''
+    })});
+}
+async function loadFromServer(){
+    try{
+        const r=await fetch('/api/state');
+        const d=await r.json();
+        if(d.team&&d.team.length){
+            myTeam=d.team;budget=d.budget||500;opps=d.opps||[];
+            favorites=d.favorites||[];notes=d.notes||{};
+            shoppingList=d.shoppingList||[];auctionLog=d.auctionLog||[];
+            localStorage.setItem('ab_team',JSON.stringify(myTeam));
+            localStorage.setItem('ab_budget',budget.toString());
+            localStorage.setItem('ab_opps',JSON.stringify(opps));
+            localStorage.setItem('ab_favs',JSON.stringify(favorites));
+            localStorage.setItem('ab_notes',JSON.stringify(notes));
+            localStorage.setItem('ab_shop',JSON.stringify(shoppingList));
+            localStorage.setItem('ab_log',JSON.stringify(auctionLog));
+            if(d.generalNotes)localStorage.setItem('ab_general_notes',d.generalNotes);
+        }
+    }catch(e){}
+}
+
 // General notes
 function toggleNotes(){
     const el=document.getElementById('general-notes');
     el.style.display=el.style.display==='none'?'block':'none';
 }
 function saveGeneralNotes(){
-    localStorage.setItem('ab_general_notes',document.getElementById('notes-area').value);
+    localStorage.setItem('ab_general_notes',document.getElementById('notes-area').value);syncToServer();
 }
 
 // Favorites
 function toggleFav(nome){
     const i=favorites.indexOf(nome);
     if(i>=0)favorites.splice(i,1); else favorites.push(nome);
-    localStorage.setItem('ab_favs',JSON.stringify(favorites));
+    localStorage.setItem('ab_favs',JSON.stringify(favorites));syncToServer();
     filterList();
 }
 
@@ -965,7 +1116,7 @@ function toggleFav(nome){
 function addNote(nome){
     const current=notes[nome]||'';
     const n=prompt('Nota per '+nome+':',current);
-    if(n!==null){notes[nome]=n;localStorage.setItem('ab_notes',JSON.stringify(notes));filterList();}
+    if(n!==null){notes[nome]=n;localStorage.setItem('ab_notes',JSON.stringify(notes));syncToServer();filterList();}
 }
 
 // Shopping list
@@ -973,7 +1124,7 @@ function showShoppingList(){
     const det=document.getElementById('player-detail');
     det.style.display='block';
     det.innerHTML=`<h3 style="color:#ff9800">🎯 Lista della spesa</h3>
-        <div class="row"><input type="text" id="shop-name" placeholder="Giocatore"><input type="number" id="shop-max" placeholder="Max €" style="max-width:70px"><button onclick="addToShop()">+</button></div>
+        <div class="row lo-prendo-row"><input type="text" id="shop-name" placeholder="Giocatore"><input type="number" id="shop-max" placeholder="Max €" style="max-width:70px"><button onclick="addToShop()">+</button></div>
         <div id="shop-items" style="margin-top:8px">${shoppingList.map((s,i)=>`<div style="padding:4px 0;border-bottom:1px solid #2a3a4a;display:flex;justify-content:space-between"><span>${s.nome} <span style="color:#4fc3f7">max ${s.max}cr</span></span><span style="cursor:pointer;color:#f44336" onclick="removeShop(${i})">✕</span></div>`).join('')||'<span style="color:#666">Vuota</span>'}</div>
         <button class="btn btn-sm" style="margin-top:8px;background:#333;color:#aaa" onclick="document.getElementById('player-detail').style.display='none'">✕ Chiudi</button>`;
 }
@@ -1017,8 +1168,7 @@ function showSpendingChart(){
 }
 
 // Init
-renderTeam();renderOpps();renderLog();
-document.getElementById('notes-area').value=localStorage.getItem('ab_general_notes')||'';
+loadFromServer().then(()=>{renderTeam();renderOpps();renderLog();document.getElementById('notes-area').value=localStorage.getItem('ab_general_notes')||'';});
 fetch('/api/player_tags').then(r=>r.json()).then(t=>{playerTags=t;loadAllPlayers();});
 fetch('/api/squads').then(r=>r.json()).then(sqs=>{
     ['f-squad','st-sq'].forEach(id=>{

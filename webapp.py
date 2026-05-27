@@ -1,5 +1,6 @@
 """AiBet — Flask web app for Fantacalcio Mantra auction."""
 
+import json
 from flask import Flask, render_template, request, jsonify
 from src.valuation import load_db, valuate_player, get_top_players, search_players, suggest_alternative, should_buy
 from src.league_roster import load_league_data
@@ -196,6 +197,23 @@ def api_should_buy():
 @app.route("/api/squads")
 def api_squads():
     return jsonify(squads)
+
+
+@app.route("/api/state", methods=["GET"])
+def api_state_load():
+    """Load saved state from server file."""
+    state_file = Path("data/user_state.json")
+    if state_file.exists():
+        return jsonify(json.loads(state_file.read_text()))
+    return jsonify({})
+
+
+@app.route("/api/state", methods=["POST"])
+def api_state_save():
+    """Save state to server file."""
+    data = request.get_json()
+    Path("data/user_state.json").write_text(json.dumps(data, ensure_ascii=False))
+    return jsonify({"ok": True})
 
 
 @app.route("/api/sosfanta")
@@ -532,6 +550,28 @@ def api_upload_listone():
     save_path = Path("data") / filename
     f.save(save_path)
     return jsonify({"ok": True, "file": filename})
+
+
+
+# --- Server-side persistence ---
+import json as _json
+_USER_DATA_FILE = Path("data/user_data.json")
+
+
+@app.route("/api/userdata", methods=["GET"])
+def api_userdata_load():
+    """Load user data from server."""
+    if _USER_DATA_FILE.exists():
+        return app.response_class(_USER_DATA_FILE.read_text(encoding="utf-8"), mimetype="application/json")
+    return jsonify({})
+
+
+@app.route("/api/userdata", methods=["POST"])
+def api_userdata_save():
+    """Save user data to server."""
+    data = request.get_json()
+    _USER_DATA_FILE.write_text(_json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":

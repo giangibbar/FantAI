@@ -74,22 +74,31 @@ def valuate_player(name: str, db: pd.DataFrame, sosfanta: dict = None, market_pr
         if name.lower() in rig_content.lower():
             is_rigorista = True
 
-    # Price: use market price if available, otherwise calculate
+    # Price: use league price if available, otherwise QI * 4.5 (scaled for 500cr league)
     market_price = market_prices.get(name.lower(), 0) if market_prices else 0
 
-    base_prices = {"A": 22, "C": 14, "D": 7, "P": 4}
-    base = base_prices.get(role, 10)
-    fm_bonus = max(0, (projected_fm - 6.0)) * 18
-    presence_factor = min(avg_presenze / 30, 1.0)
-    titolare_bonus = 1.15 if is_titolare else 0.85
-    rigorista_bonus = 1.2 if is_rigorista else 1.0
-    calc_price = round((base + fm_bonus) * presence_factor * titolare_bonus * rigorista_bonus * (0.7 + consistency * 0.3))
+    # Get quotazione iniziale from quotazioni file
+    from src.quotazioni import load_quotazioni
+    quot = load_quotazioni()
+    from unicodedata import normalize as _n2, category as _c2
+    def _clean2(s):
+        s = s.replace("'","").replace("*","")
+        return ''.join(c for c in _n2('NFD', s.lower()) if _c2(c) != 'Mn')
+    search_name = _clean2(name)
+    qi_row = quot[quot["nome"].apply(lambda x: search_name in _clean2(x))]
+    qi = int(qi_row.iloc[0]["quotazione_iniziale"]) if not qi_row.empty else 0
 
-    # Blend market price with calculated (market is more reliable if available)
+    # Suggested price: league price if available, else QI * 4.5
     if market_price > 0:
-        suggested_price = round(market_price * 0.6 + calc_price * 0.4)
+        suggested_price = market_price
+    elif qi > 0:
+        suggested_price = round(qi * 4.5)
     else:
-        suggested_price = calc_price
+        base_prices = {"A": 22, "C": 14, "D": 7, "P": 4}
+        base = base_prices.get(role, 10)
+        fm_bonus = max(0, (projected_fm - 6.0)) * 18
+        presence_factor = min(avg_presenze / 30, 1.0)
+        suggested_price = round((base + fm_bonus) * presence_factor)
 
     max_price = round(suggested_price * 1.3)
 
@@ -107,6 +116,8 @@ def valuate_player(name: str, db: pd.DataFrame, sosfanta: dict = None, market_pr
         "prezzo_suggerito": suggested_price,
         "prezzo_max": max_price,
         "prezzo_mercato": market_price,
+        "qa": qi,
+        "ap": market_price if market_price > 0 else None,
         "titolare": is_titolare,
         "rigorista": is_rigorista,
         "stagioni": len(seasons),
