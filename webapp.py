@@ -1,14 +1,16 @@
 """AiBet — Flask web app for Fantacalcio Mantra auction."""
 
 import json
+import threading
 from flask import Flask, render_template, request, jsonify
+from flask_compress import Compress
 from src.valuation import load_db, valuate_player, get_top_players, search_players, suggest_alternative, should_buy
 from src.league_roster import load_league_data
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+Compress(app)
 
-# Auto-refresh data on startup (if older than 24h)
-print("Controllo dati...")
+# Background data refresh (non-blocking startup)
 from src.quotazioni import scrape_quotazioni
 from src.fantacalcio import scrape_all_seasons
 from pathlib import Path
@@ -18,16 +20,19 @@ quot_file = Path("data/quotazioni_fantacalcio.csv")
 stats_file = Path("data/fantacalcio/all_seasons.csv")
 stale = lambda f: not f.exists() or (time.time() - f.stat().st_mtime > 86400)
 
-try:
-    if stale(quot_file):
-        print("  Aggiornamento quotazioni da fantacalcio.it...")
-        scrape_quotazioni()
-    if stale(stats_file):
-        print("  Aggiornamento statistiche da fantacalcio.it...")
-        scrape_all_seasons()
-    print("  ✓ Dati aggiornati")
-except Exception as e:
-    print(f"  ⚠️ Errore: {e} (uso dati esistenti)")
+def _refresh_data():
+    try:
+        if stale(quot_file):
+            print("  Aggiornamento quotazioni da fantacalcio.it...")
+            scrape_quotazioni()
+        if stale(stats_file):
+            print("  Aggiornamento statistiche da fantacalcio.it...")
+            scrape_all_seasons()
+        print("  ✓ Dati aggiornati in background")
+    except Exception as e:
+        print(f"  ⚠️ Errore scraping: {e}")
+
+threading.Thread(target=_refresh_data, daemon=True).start()
 
 db = load_db()
 
@@ -41,6 +46,16 @@ except Exception:
 # Load league rosters and market prices
 league_teams, market_prices = load_league_data()
 print(f"Loaded: {len(league_teams)} fantasy teams, {len(market_prices)} market prices")
+
+# Cache CSV reads globally (avoid re-reading on every request)
+from src.quotazioni import load_quotazioni
+from src.listone import load_listone
+_quotazioni_cache = load_quotazioni()
+_listone_cache = load_listone()
+
+# Endpoint caches
+_svincolati_cache = None
+_player_tags_cache = None
 
 # Get all Serie A squads
 SQUAD_NAMES = {"ATA":"Atalanta","BOL":"Bologna","CAG":"Cagliari","COM":"Como","CRE":"Cremonese","FIO":"Fiorentina","GEN":"Genoa","INT":"Inter","JUV":"Juventus","LAZ":"Lazio","LEC":"Lecce","MIL":"Milan","NAP":"Napoli","PAR":"Parma","PIS":"Pisa","ROM":"Roma","SAS":"Sassuolo","TOR":"Torino","UDI":"Udinese","VER":"Verona"}
@@ -74,13 +89,19 @@ def api_player(name):
 
 @app.route("/api/player_profile/<name>")
 def api_player_profile(name):
-    """Scrape detailed profile from fantacalcio.it (FVM, MV, rigori, pro/contro)."""
+    """Scrape detailed profile from fantacalcio.it (FVM, MV, rigori, pro/contro). Cached 24h."""
     import requests as req
     from bs4 import BeautifulSoup
 
-    # Find player link from quotazioni page
-    from src.quotazioni import load_quotazioni
-    quot = load_quotazioni()
+    # TTL cache for profiles
+    _profile_cache = getattr(api_player_profile, '_cache', {})
+    api_player_profile._cache = _profile_cache
+    cached = _profile_cache.get(name)
+    if cached and time.time() - cached[0] < 86400:
+        return jsonify(cached[1])
+
+    # Use global cached quotazioni
+    quot = _quotazioni_cache
     # Normalize search: strip accents, apostrophes, asterisks
     from unicodedata import normalize as _n, category as _c
     def _clean(s):
@@ -165,6 +186,7 @@ def api_player_profile(name):
             if "sosfanta_desc" in result:
                 break
 
+        _profile_cache[name] = (time.time(), result)
         return jsonify(result)
 
     except Exception as e:
@@ -225,8 +247,11 @@ def api_sosfanta():
 @app.route("/api/player_tags")
 def api_player_tags():
     """Extract player tags from tier lines like 'TOP - Svilar, Di Gregorio, Maignan'."""
-    from src.listone import load_listone
-    listone = load_listone()
+    global _player_tags_cache
+    if _player_tags_cache is not None:
+        return jsonify(_player_tags_cache)
+
+    listone = _listone_cache
 
     # Build lookup
     listone_entries = []
@@ -335,6 +360,7 @@ def api_player_tags():
     for key, tier in OVERRIDES.items():
         tags[key] = [tier]
 
+    _player_tags_cache = tags
     return jsonify(tags)
 
 
@@ -343,10 +369,18 @@ def api_player_tags():
 @app.route("/api/svincolati")
 def api_svincolati():
     """Get free agents (players not in any fantasy team). This is the main player list for auction."""
-    from src.listone import load_listone
+    global _svincolati_cache
     from unicodedata import normalize, category
     from pathlib import Path
-    listone = load_listone()
+
+    # Return cached if no filters and cache exists
+    role = request.args.get("role")
+    squadra = request.args.get("squadra")
+    q = request.args.get("q", "").lower()
+    if not role and not squadra and not q and _svincolati_cache is not None:
+        return jsonify(_svincolati_cache)
+
+    listone = _listone_cache
 
     def _simplify(s):
         s = s.replace('ı', 'i').replace('İ', 'i').replace('ş', 's').replace('ç', 'c').replace('ğ', 'g').replace('ø', 'o').replace('ü', 'u').replace('ö', 'o')
@@ -436,7 +470,10 @@ def api_svincolati():
             "fm_stimata": fm_stimata,
         })
 
-    return jsonify(sorted(result, key=lambda x: x["quotazione"], reverse=True))
+    sorted_result = sorted(result, key=lambda x: x["quotazione"], reverse=True)
+    if not role and not squadra and not q:
+        _svincolati_cache = sorted_result
+    return jsonify(sorted_result)
 
 
 @app.route("/api/sosfanta/<key>")
@@ -455,6 +492,23 @@ def api_sosfanta_refresh():
     from src.sosfanta import scrape_all_pages
     sosfanta = scrape_all_pages(force=True)
     return jsonify({"ok": True, "pages": len(sosfanta)})
+
+
+@app.route("/api/refresh_stats", methods=["POST"])
+def api_refresh_stats():
+    """Force re-scrape stats and quotazioni from fantacalcio.it."""
+    global db, _quotazioni_cache, _listone_cache, _svincolati_cache, _player_tags_cache
+    try:
+        scrape_quotazioni()
+        scrape_all_seasons()
+        db = load_db()
+        _quotazioni_cache = load_quotazioni()
+        _listone_cache = load_listone()
+        _svincolati_cache = None
+        _player_tags_cache = None
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})
 
 
 @app.route("/api/sosfanta/update_url", methods=["POST"])
@@ -526,8 +580,7 @@ def api_upload_rose():
 @app.route("/api/listone")
 def api_listone():
     """Get full player list with quotazioni."""
-    from src.listone import load_listone
-    df = load_listone()
+    df = _listone_cache
     role = request.args.get("role")
     squadra = request.args.get("squadra")
     if role:

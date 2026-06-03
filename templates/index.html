@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
     <title>FantAI — Asta Fantacalcio Mantra</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Cache-Control" content="public, max-age=3600">
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
         html,body{height:100%;width:100%;overflow:hidden;margin:0}
@@ -272,7 +272,8 @@
                 <input type="text" id="set-link-url" placeholder="Nuovo URL...">
                 <button onclick="saveLink()">Salva</button>
             </div>
-            <button class="btn btn-sm btn-o" onclick="doRefresh()" style="margin-top:6px">🔄 Ri-scrapea tutti i link</button>
+            <button class="btn btn-o" onclick="doRefresh()" style="margin-top:12px;padding:18px 24px !important;font-size:1.2em !important;width:100%;min-height:60px">🔄 Ri-scrapea tutti i link</button>
+            <button class="btn btn-o" onclick="doScrapeStats()" style="margin-top:12px;padding:18px 24px !important;font-size:1.2em !important;width:100%;min-height:60px">📊 Aggiorna statistiche e quotazioni</button>
 
             <div class="sec-t" style="margin-top:16px">🗑️ Reset dati</div>
             <div class="row ">
@@ -910,6 +911,14 @@ async function doRefresh(){
     await fetch('/api/sosfanta/refresh',{method:'POST'});
     loadSt(currentStatsKey,document.querySelector('#st-tabs .tab.active'));
     alert('Aggiornato!');
+}
+async function doScrapeStats(){
+    if(!confirm('Aggiornare statistiche e quotazioni da fantacalcio.it? Può richiedere 1-2 minuti.'))return;
+    const btn=event.target;btn.disabled=true;btn.textContent='⏳ Scaricamento...';
+    const r=await fetch('/api/refresh_stats',{method:'POST'});
+    const d=await r.json();
+    btn.disabled=false;btn.textContent='📊 Aggiorna statistiche e quotazioni';
+    alert(d.ok?'✓ Statistiche aggiornate!':'⚠️ Errore: '+(d.error||'sconosciuto'));
 }
 async function updateCurrentUrl(){
     const url=document.getElementById('custom-url').value.trim();
