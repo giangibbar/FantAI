@@ -36,6 +36,34 @@ python webapp.py
 
 Apri **http://localhost:5000** dal browser (PC o telefono sulla stessa rete).
 
+## Deploy su Raspberry Pi 4
+
+L'app gira come servizio systemd con gunicorn:
+
+```bash
+# Installazione
+python3 -m venv .venv
+source .venv/bin/activate
+pip install flask flask-compress pandas numpy requests beautifulsoup4 lxml openpyxl gunicorn
+
+# Avvio manuale
+gunicorn -w 2 -b 0.0.0.0:5000 webapp:app --timeout 120
+
+# Service systemd (auto-start al boot)
+sudo systemctl enable fantai
+sudo systemctl start fantai
+```
+
+Accedi da **http://192.168.1.26:5000** (o da telefono sulla stessa rete).
+
+### Ottimizzazioni RPi
+
+- **Gzip+Brotli** — pagina 72KB → 17KB via flask-compress
+- **Cache endpoint** — /api/svincolati e /api/player_tags calcolati una volta, serviti in <50ms
+- **Cache profili** — scraping fantacalcio.it con TTL 24h
+- **Scraping in background** — non blocca lo startup
+- **Bottone aggiornamento manuale** — in ⚙️ Impostazioni per forzare refresh dati
+
 ## Struttura
 
 ```
