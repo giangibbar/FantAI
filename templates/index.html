@@ -311,12 +311,12 @@ function syncToServer(){
         const data={team:myTeam,budget,opps,favorites,notes,shoppingList,
             generalNotes:document.getElementById('notes-area')?document.getElementById('notes-area').value:'',
             auctionLog:JSON.parse(localStorage.getItem('ab_log')||'[]')};
-        fetch('/api/userdata',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{});
+        fetch('api/userdata',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{});
     },1000);
 }
 async function loadFromServer(){
     try{
-        const r=await fetch('/api/userdata');
+        const r=await fetch('api/userdata');
         const d=await r.json();
         if(d&&d.team){
             myTeam=d.team;budget=d.budget||500;opps=d.opps||[];favorites=d.favorites||[];
@@ -383,7 +383,7 @@ function showSec(s,el){
 
 // Load all players
 async function loadAllPlayers(){
-    const r=await fetch('/api/svincolati');
+    const r=await fetch('api/svincolati');
     allPlayers=await r.json();
     filterList();
     renderTeam();
@@ -452,9 +452,9 @@ function renderList(players){
 }
 
 async function showDetail(nome){
-    let r=await fetch(`/api/search?q=${encodeURIComponent(nome)}`);
+    let r=await fetch(`api/search?q=${encodeURIComponent(nome)}`);
     let arr=await r.json();
-    if(!arr.length&&nome.split(' ').length>1){r=await fetch(`/api/search?q=${encodeURIComponent(nome.split(' ')[0])}`);arr=await r.json();}
+    if(!arr.length&&nome.split(' ').length>1){r=await fetch(`api/search?q=${encodeURIComponent(nome.split(' ')[0])}`);arr=await r.json();}
     if(!arr.length){document.getElementById('player-detail').innerHTML='<div style="padding:10px;color:#888">Non trovato nel database storico (giocatore nuovo?)</div>';document.getElementById('player-detail').style.display='block';return;}
     const p=arr[0];
     const det=document.getElementById('player-detail');
@@ -512,7 +512,7 @@ function showUnmatched(){
 async function loadProfile(nome){
     const el=document.getElementById('profile-extra');
     el.innerHTML='<span style="color:#888">Caricamento profilo...</span>';
-    const r=await fetch(`/api/player_profile/${encodeURIComponent(nome)}`);
+    const r=await fetch(`api/player_profile/${encodeURIComponent(nome)}`);
     const d=await r.json();
     if(d.error){el.innerHTML=`<span style="color:#666">${d.error}</span>`;return;}
     el.innerHTML=`
@@ -532,7 +532,7 @@ let compareList=[];
 async function addToCompare(nome){
     if(compareList.length>=3)compareList.shift();
     const surname=nome.split(' ')[0];
-    const r=await fetch(`/api/search?q=${encodeURIComponent(surname)}`);
+    const r=await fetch(`api/search?q=${encodeURIComponent(surname)}`);
     const arr=await r.json();
     if(!arr.length)return;
     const p=arr[0];
@@ -854,7 +854,7 @@ async function askBuy(){
     if(!nameRaw)return;
     // Use surname for API search
     const name=nameRaw.split(' ')[0];
-    const res=await fetch('/api/should_buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:name,prezzo:price,rosa:myTeam,budget})});
+    const res=await fetch('api/should_buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:name,prezzo:price,rosa:myTeam,budget})});
     const d=await res.json();
     let cls=d.consiglio.includes('PRENDI')||d.consiglio.includes('AFFARE')?'v-ok':d.consiglio.includes('VALUTA')?'v-maybe':'v-no';
     let h=`<div class="verdict ${cls}"><b>${d.consiglio}</b><br><small>${d.motivo}</small>`;
@@ -873,7 +873,7 @@ async function loadSt(key,el){
     currentStatsKey=key;
     document.querySelectorAll('#st-tabs .tab').forEach(t=>t.classList.remove('active'));
     if(el)el.classList.add('active');
-    const r=await fetch(`/api/sosfanta/${key}`);
+    const r=await fetch(`api/sosfanta/${key}`);
     const d=await r.json();
     stFull=d.content;
     document.getElementById('st-sq').value='';
@@ -908,14 +908,14 @@ function filterSt(){
 let currentStatsKey='guida_asta_por';
 async function doRefresh(){
     document.getElementById('stats-content').innerHTML='<div style="padding:20px;color:#888">Aggiornamento...</div>';
-    await fetch('/api/sosfanta/refresh',{method:'POST'});
+    await fetch('api/sosfanta/refresh',{method:'POST'});
     loadSt(currentStatsKey,document.querySelector('#st-tabs .tab.active'));
     alert('Aggiornato!');
 }
 async function doScrapeStats(){
     if(!confirm('Aggiornare statistiche e quotazioni da fantacalcio.it? Può richiedere 1-2 minuti.'))return;
     const btn=event.target;btn.disabled=true;btn.textContent='⏳ Scaricamento...';
-    const r=await fetch('/api/refresh_stats',{method:'POST'});
+    const r=await fetch('api/refresh_stats',{method:'POST'});
     const d=await r.json();
     btn.disabled=false;btn.textContent='📊 Aggiorna statistiche e quotazioni';
     alert(d.ok?'✓ Statistiche aggiornate!':'⚠️ Errore: '+(d.error||'sconosciuto'));
@@ -923,7 +923,7 @@ async function doScrapeStats(){
 async function updateCurrentUrl(){
     const url=document.getElementById('custom-url').value.trim();
     if(!url){alert('Incolla il nuovo URL');return;}
-    await fetch('/api/sosfanta/update_url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:currentStatsKey,url})});
+    await fetch('api/sosfanta/update_url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:currentStatsKey,url})});
     document.getElementById('custom-url').value='';
     doRefresh();
 }
@@ -931,7 +931,7 @@ async function saveLink(){
     const key=document.getElementById('set-link-key').value;
     const url=document.getElementById('set-link-url').value.trim();
     if(!url){alert('Inserisci URL');return;}
-    await fetch('/api/sosfanta/update_url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,url})});
+    await fetch('api/sosfanta/update_url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,url})});
     document.getElementById('set-link-url').value='';
     alert('Link salvato! Clicca "Ri-scrapea" per aggiornare i contenuti.');
 }
@@ -939,7 +939,7 @@ function doUpload(){
     const f=document.getElementById('ul');
     if(!f.files.length)return;
     const fd=new FormData();fd.append('file',f.files[0]);
-    fetch('/api/upload_listone',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    fetch('api/upload_listone',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
         alert(d.ok?'Listone caricato!':'Errore');
         loadAllPlayers();
     });
@@ -1079,14 +1079,14 @@ function showSmartSuggestions(){
 
 // Sync state to server (for cross-device persistence)
 function syncToServer(){
-    fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    fetch('api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
         team:myTeam,budget,opps,favorites,notes,shoppingList,auctionLog,
         generalNotes:document.getElementById('notes-area')?.value||''
     })});
 }
 async function loadFromServer(){
     try{
-        const r=await fetch('/api/state');
+        const r=await fetch('api/state');
         const d=await r.json();
         if(d.team&&d.team.length){
             myTeam=d.team;budget=d.budget||500;opps=d.opps||[];
@@ -1178,8 +1178,8 @@ function showSpendingChart(){
 
 // Init
 loadFromServer().then(()=>{renderTeam();renderOpps();renderLog();document.getElementById('notes-area').value=localStorage.getItem('ab_general_notes')||'';});
-fetch('/api/player_tags').then(r=>r.json()).then(t=>{playerTags=t;loadAllPlayers();});
-fetch('/api/squads').then(r=>r.json()).then(sqs=>{
+fetch('api/player_tags').then(r=>r.json()).then(t=>{playerTags=t;loadAllPlayers();});
+fetch('api/squads').then(r=>r.json()).then(sqs=>{
     ['f-squad','st-sq'].forEach(id=>{
         const s=document.getElementById(id);
         sqs.forEach(sq=>s.innerHTML+=`<option value="${sq}">${sq}</option>`);
